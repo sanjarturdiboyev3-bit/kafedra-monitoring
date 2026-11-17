@@ -233,4 +233,390 @@ input, select { background: var(--surface); border: 1px solid var(--line); borde
       list.forEach(function (it) { var i = info(it); if (i.counted) { n++; sum += i.p; if (i.full) full++; } });
       return { pct: n ? sum / n * 100 : null, total: n, full: full, all: list.length };
     }
-    function itemsOf(f) { return S.items.filter(f).sort(function (a, b) { return a.teacher.loc
+    function itemsOf(f) { return S.items.filter(f).sort(function (a, b) { return a.teacher.localeCompare(b.teacher) || String(a.sec).localeCompare(String(b.sec)) || a.no - b.no; }); }
+    function behind(p) { return p !== null && p < elapsedPct() - GAP; }
+
+    // ---------- Word (.docx) parser ----------
+    async function parseDocx(file) {
+      if (!window.JSZip) throw new Error("JSZip kutubxonasi yuklanmadi");
+      var zip = await window.JSZip.loadAsync(await file.arrayBuffer()), f = zip.file("word/document.xml");
+      if (!f) throw new Error("Bu .docx fayl emas. .doc bo'lsa, Word'da \"Saqlash\" bilan .docx qiling.");
+      var d = new DOMParser().parseFromString(await f.async("string"), "application/xml"), W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
+      function cellText(tc) {
+        var ps = tc.getElementsByTagNameNS(W, "p"), out = [];
+        for (var i = 0; i < ps.length; i++) { var ts = ps[i].getElementsByTagNameNS(W, "t"), s = ""; for (var j = 0; j < ts.length; j++) s += ts[j].textContent; out.push(s); }
+        return normT(out.join(" "));
+      }
+      function rowsOf(t) {
+        var rs = [];
+        for (var n = t.firstChild; n; n = n.nextSibling) if (n.localName === "tr") { var cs = []; for (var c = n.firstChild; c; c = c.nextSibling) if (c.localName === "tc") cs.push(cellText(c)); rs.push(cs); }
+        return rs;
+      }
+      var tbls = d.getElementsByTagNameNS(W, "tbl"), name = "", pos = "", items = [];
+      for (var ti = 0; ti < tbls.length; ti++) {
+        var rows = rowsOf(tbls[ti]); if (!rows.length) continue;
+        if (rows[0].length === 2 && rows[0][0] === "F.I.Sh.") { name = rows[0][1]; pos = rows[1] ? rows[1][1] : ""; continue; }
+        var h = (rows[0][1] || "").toLowerCase(), sec = null;
+        if (rows[0].length === 6) { if (h.indexOf("aniq rejalashtirilgan ish") === 0) sec = "II"; else if (h.indexOf("rejalashtirilgan ilmiy") === 0) sec = "III"; else if (h.indexOf("aniq rejalashtirilgan faoliyat") === 0) sec = "IV"; }
+        if (!sec) continue;
+        rows.slice(1).forEach(function (c) {
+          var no = parseInt(c[0], 10); if (isNaN(no) || c.length < 6 || !c[1]) return;
+          items.push(buildItem(sec, no, c[1], c[2], c[3], c[4]));
+        });
+      }
+      if (!name) throw new Error("F.I.Sh. jadvali topilmadi: bu reja shabloni emas");
+      if (!items.length) throw new Error("Reja bandlari topilmadi");
+      return { name: name, position: pos, items: items };
+    }
+    function buildItem(sec, no, title, reja, muddat, rule) {
+      var cat = sec === "III" ? "ilmiy" : (sec === "II" ? "uslubiy" : (/to'garak|moslashuv|qiyinchilik|iqtidorli|bandlik|kasbiy yo'nal|individual|maslahat/i.test(title) ? "ustoz" : "manaviy"));
+      var kind = null, band = bandKey(title);
+      if (sec === "III") for (var i = 0; i < KINDS.length; i++) if (KINDS[i][1].test(title)) { kind = KINDS[i][0]; band = KINDS[i][2]; break; }
+      var mode = "free", target = null, unit = "", m = /^(\d+)\s*(ta|nafar talaba|nafar|semestr)/i.exec(reja);
+      if (m) { mode = "qty"; target = parseInt(m[1], 10); unit = /nafar/i.test(m[2]) ? "nafar" : m[2].toLowerCase(); } else if (/tegishli fanlar/i.test(reja)) mode = "bin";
+      var ml = muddat.toLowerCase(), due = "2027-06-30", standing = false;
+      if (/shu kuni|reglament|ish kunida/.test(ml)) { due = null; standing = true; }
+      else if (/tanlov|belgilangan muddat|zaruratga|^avgust$|boshlan/.test(ml)) due = null;
+      else if (/dekabr/.test(ml)) due = "2026-12-31"; else if (/aprel/.test(ml)) due = "2027-04-30";
+      return { year: YEAR, sec: sec, no: no, cat: cat, kind: kind, band: band, title: title, mode: mode, target: target, unit: unit, targetText: reja, muddat: muddat, due: due, standing: standing, evidenceRule: rule, override: false, note: "" };
+    }
+
+    // ---------- xabarlar (Telegram) ----------
+    function teacherMsg(t, kind) {
+      var list = itemsOf(function (i) { return i.teacher === t.id; }), st = stats(list), lines = [];
+      lines.push(kind === "oylik" ? "📊 Shaxsiy reja: oylik xulosa" : "📋 Shaxsiy reja: haftalik eslatma", "Assalomu alaykum, " + firstName(t) + "!", "");
+      lines.push("Bajarilish: " + pc(st.pct) + " (o'quv yilining " + Math.round(elapsedPct()) + "% i o'tdi)", "To'liq bajarilgan: " + st.full + " / " + st.total + " band");
+      var open = list.filter(function (i) { var x = info(i); return x.counted && !x.full && !i.standing; }).sort(function (a, b) { return (a.due || "9999").localeCompare(b.due || "9999") || a.no - b.no; });
+      if (kind === "oylik") {
+        lines.push("", "Yo'nalishlar bo'yicha:");
+        CATS.forEach(function (c) { var s = stats(list.filter(function (i) { return i.cat === c[0]; })); if (s.total) lines.push((s.pct >= 100 ? "✅ " : (s.pct > 0 ? "🔶 " : "⏳ ")) + c[1] + ": " + pc(s.pct) + " (" + s.full + "/" + s.total + ")"); });
+      } else if (open.length) {
+        lines.push("", "Navbatdagi ishlar:");
+        open.slice(0, 5).forEach(function (i) { var x = info(i); lines.push((x.late ? "⚠️ " : "⏳ ") + clip(i.band, 60) + (x.qty ? ": " + x.done + "/" + i.target : "") + (i.due ? " · muddat " + fmtDate(i.due) : "")); });
+        if (open.length > 5) lines.push("… va yana " + (open.length - 5) + " ta band");
+      } else lines.push("", "Rejadagi barcha ishlar bajarilgan 🎉");
+      var late = open.filter(function (i) { return info(i).late; }).length;
+      if (late) lines.push("", "Muddati o'tgan: " + late + " ta band");
+      var near = open.filter(function (i) { return i.due && i.due >= today(); })[0];
+      if (near) lines.push("", "Eng yaqin muddat: " + fmtDate(near.due));
+      lines.push("", "Dalil va natijalarni kafedra administratoriga yuboring.");
+      return lines.join("\n");
+    }
+
+    // ---------- forma yordamchisi ----------
+    function F(label, key, o) {
+      o = o || {}; var id = "f-" + key, inp;
+      if (o.type === "select") {
+        if (S.f[key] == null || !o.opts.some(function (x) { return String(x[0]) === String(S.f[key]); })) S.f[key] = o.opts.length ? o.opts[0][0] : "";
+        inp = el("select", { id: id }, o.opts.map(function (x) { return el("option", { value: x[0], selected: String(S.f[key]) === String(x[0]), text: x[1] }); }));
+        inp.addEventListener("change", function () { S.f[key] = inp.value; if (o.re) render(); });
+      } else {
+        inp = el("input", { id: id, type: o.type || "text", placeholder: o.ph || null, min: o.min || null, step: o.step || null });
+        inp.value = S.f[key] == null ? "" : S.f[key];
+        inp.addEventListener("input", function () { S.f[key] = inp.value; });
+      }
+      return el("label", { class: o.wide ? "wide" : "", for: id }, [label, inp]);
+    }
+    function toast(t, x) { S.msg = { t: t, x: x }; clearTimeout(S.mt); S.mt = setTimeout(function () { S.msg = null; render(); }, 5000); }
+    function run(p, ok, after) {
+      return Promise.resolve(p).then(function () { toast("ok", ok); if (after) after(); render(); }).catch(function (e) { toast("err", "Saqlanmadi: " + ((e && e.message) || "noma'lum xato")); render(); });
+    }
+    function teacherOpts(all) { var o = S.teachers.map(function (t) { return [t.id, t.name]; }); return all ? [["", "Barcha o'qituvchilar"]].concat(o) : o; }
+    function catOpts(all) { var o = CATS.map(function (c) { return [c[0], c[1]]; }); return all ? [["", "Barcha yo'nalishlar"]].concat(o) : o; }
+    function go(p, f) { S.page = p; S.edit = null; S.addOpen = false; S.teEdit = null; S.confirm = null; if (f) S.f = f; render(); window.scrollTo(0, 0); }
+
+    // ---------- sahifalar ----------
+    function pPanel() {
+      var st = stats(S.items), e = elapsedPct();
+      var cards = el("div", { class: "cards" }, [
+        card("O'qituvchilar", String(S.teachers.length), "Yagona ma'lumotlar bazasi"), card("Reja bandlari", String(S.items.length), st.total + " tasi foizga kiradi"),
+        card("Bajarilgan bandlar", st.full + " / " + st.total, "dalil bilan tasdiqlangan"), card("Kafedra bajarilishi", pc(st.pct), "o'quv yilining " + Math.round(e) + "% i o'tdi")
+      ]);
+      var cats = el("div", null, CATS.map(function (c) {
+        var l = S.items.filter(function (i) { return i.cat === c[0]; }), s = stats(l);
+        return el("div", { class: "cat" }, [el("div", { class: "hd" }, [el("strong", { text: c[1] }), el("span", { text: l.length ? pc(s.pct) + " · " + l.length + " band" : "reja bandlari yo'q" })]),
+          el("div", { class: "bar" }, [el("i", { style: "width:" + (s.pct || 0) + "%" }), el("u", { style: "left:" + e + "%" })])]);
+      }).concat([el("div", { class: "legend", text: "o'quv yilining o'tgan ulushi" })]));
+      var rec = allComps().slice().sort(function (a, b) { return String(b.createdAt || b.date).localeCompare(String(a.createdAt || a.date)); }).slice(0, 6);
+      var recent = rec.length ? el("div", { class: "gap" }, rec.map(function (c) {
+        var it = S.items.filter(function (i) { return i.id === c.item; })[0]; if (!it) return null;
+        return el("div", null, [el("b", { text: shortName(S.tmap[c.teacher]) }), el("div", { class: "sub note", text: clip(it.band, 60) + " · " + qtyText(it, c.amount) + " · " + fmtDate(c.date) })]);
+      })) : el("div", { class: "empty", text: "Hali bajarilgan ish qayd etilmagan" });
+      var head = el("tr", null, [el("th", { text: "O'qituvchi" })].concat(CATS.map(function (c) { return el("th", { class: "n", text: c[1] }); })).concat([el("th", { class: "n", text: "Jami" }), el("th", { class: "n", text: "Holat" })]));
+      var rows = S.teachers.map(function (t) {
+        var l = S.items.filter(function (i) { return i.teacher === t.id; }), s = stats(l);
+        return el("tr", { class: "click", onclick: function () { go("plans", { pt: t.id }); } }, [el("td", null, [el("b", { text: t.name }), el("div", { class: "sub", text: t.position })])]
+          .concat(CATS.map(function (c) { var cs = stats(l.filter(function (i) { return i.cat === c[0]; })); return el("td", { class: "n", text: pc(cs.pct) }); }))
+          .concat([el("td", { class: "n" }, [el("b", { text: pc(s.pct) })]), el("td", { class: "n" }, [el("span", { class: "pill " + (s.pct === null ? "mute" : (behind(s.pct) ? "bad" : "good")), text: s.pct === null ? "reja yo'q" : (behind(s.pct) ? "Ortda" : "Tempda") })])]));
+      });
+      return [cards, el("div", { class: "grid2" }, [el("div", { class: "panel" }, [el("h2", { text: "Yo'nalishlar bo'yicha monitoring" }), cats]), el("div", { class: "panel" }, [el("h2", { text: "So'nggi bajarilgan ishlar" }), recent])]),
+        el("div", { class: "panel" }, [el("h2", { text: "O'qituvchilar umumiy monitoringi" }), el("div", { class: "scroll" }, [el("table", null, [el("thead", null, [head]), el("tbody", null, rows)])])])];
+    }
+    function card(k, v, s) { return el("div", { class: "card" }, [el("div", { class: "k", text: k }), el("div", { class: "v", text: v }), el("div", { class: "s", text: s })]); }
+
+    function pTeachers() {
+      var out = [];
+      var isEdit = !!S.teEdit;
+      out.push(el("div", { class: "panel" }, [el("h2", { text: isEdit ? "O'qituvchi ma'lumotini tahrirlash" : "O'qituvchi qo'shish" }), el("div", { class: "form" }, [
+        F("F.I.Sh.", "tn", { ph: "Masalan: Karimov Bobur Baxtiyor o'g'li", wide: true }), F("Lavozimi", "tp", { type: "select", opts: POS.map(function (p) { return [p, p]; }) }),
+        F("Telefon (Telegram uchun)", "tph", { ph: "+998 90 123 45 67" }),
+        el("div", { class: "acts" }, [el("button", { class: "btn primary", type: "button", text: isEdit ? "Saqlash" : "+ Qo'shish", onclick: saveTeacher }), isEdit ? el("button", { class: "btn", type: "button", text: "Bekor qilish", onclick: function () { S.teEdit = null; S.f = {}; render(); } }) : null])])]));
+      var rows = S.teachers.map(function (t) {
+        var l = S.items.filter(function (i) { return i.teacher === t.id; }), s = stats(l);
+        return el("tr", null, [el("td", null, [el("b", { text: t.name })]), el("td", { text: t.position }), el("td", { text: t.phone || "kiritilmagan" }), el("td", { class: "n", text: String(l.length) }), el("td", { class: "n" }, [el("b", { text: pc(s.pct) })]),
+          el("td", { class: "n" }, [el("button", { class: "btn sm", type: "button", text: "Reja", onclick: function () { go("plans", { pt: t.id }); } }), " ",
+            el("button", { class: "btn sm", type: "button", text: "Tahrirlash", onclick: function () { S.teEdit = t.id; S.f = { tn: t.name, tp: t.position, tph: t.phone || "" }; render(); } })])]);
+      });
+      out.push(el("div", { class: "panel" }, [el("h2", { text: "O'qituvchilar yagona ro'yxati" }), el("div", { class: "scroll" }, [el("table", null, [el("thead", null, [el("tr", null, [el("th", { text: "F.I.Sh." }), el("th", { text: "Lavozim" }), el("th", { text: "Telefon" }), el("th", { class: "n", text: "Bandlar" }), el("th", { class: "n", text: "Bajarilish" }), el("th", { class: "n", text: "" })])]), el("tbody", null, rows)])])]));
+      return out;
+    }
+    function saveTeacher() {
+      var n = (S.f.tn || "").trim(); if (n.split(/\s+/).length < 2) { toast("err", "F.I.Sh. ni to'liq kiriting."); return render(); }
+      var id = S.teEdit || ("t" + Date.now().toString(36)), data = { name: n, position: S.f.tp || POS[0], phone: (S.f.tph || "").trim() };
+      
+      let promise;
+      if (S.teEdit) {
+        promise = updateDoc(doc(db, "teachers", id), data);
+      } else {
+        promise = setDoc(doc(db, "teachers", id), data);
+      }
+      
+      run(promise, "O'qituvchi saqlandi.", function () { S.teEdit = null; S.f = {}; });
+    }
+
+    function pPlans() {
+      var out = [], tid = S.f.pt || "", cat = S.f.pc || "", stf = S.f.ps || "";
+      var tools = el("div", { class: "tools" }, [
+        sel("pt", teacherOpts(true)), sel("pc", catOpts(true)), sel("ps", [["", "Barcha holatlar"], ["rejalashtirilgan", "Rejalashtirilgan"], ["jarayonda", "Jarayonda"], ["bajarildi", "Bajarildi"], ["late", "Kechikkan"]]),
+        el("button", { class: "btn primary", type: "button", text: S.addOpen ? "Yopish" : "+ Band qo'shish", onclick: function () { S.addOpen = !S.addOpen; S.edit = null; if (S.addOpen) S.f = Object.assign({}, S.f, { an: "", at: "", amode: "qty", aunit: "ta", acat: "tijorat" }); render(); } })]);
+      out.push(el("div", { class: "panel" }, [el("h2", { text: "Shaxsiy ish rejalari" }), tools].concat(S.addOpen ? [addItemForm()] : [])));
+      var list = itemsOf(function (i) { return (!tid || i.teacher === tid) && (!cat || i.cat === cat); }).filter(function (i) { var x = info(i); return !stf || (stf === "late" ? x.late : x.status === stf); });
+      var body = list.length ? list.map(function (it) { return itemCard(it, !tid); }) : [el("div", { class: "empty", text: S.items.length ? "Tanlangan filtrga mos band yo'q." : "Reja bandlari hali kiritilmagan. \"Rejani yuklash (Word)\" bo'limidan yuklang." })];
+      out.push(el("div", { class: "panel" }, [el("div", { class: "note", style: "margin-bottom:12px", text: list.length + " ta band" })].concat(body)));
+      return out;
+    }
+    function sel(key, opts) {
+      var s = el("select", { id: "f-" + key, "aria-label": key }, opts.map(function (o) { return el("option", { value: o[0], selected: String(S.f[key] || "") === String(o[0]), text: o[1] }); }));
+      s.addEventListener("change", function () { S.f[key] = s.value; render(); }); return s;
+    }
+    function itemCard(it, showT) {
+      var x = info(it), logs = (S.by[it.id] || []).slice().sort(function (a, b) { return String(b.date).localeCompare(String(a.date)); });
+      var node = el("div", { class: "item" }, [
+        el("div", { class: "hd" }, [el("div", { class: "tt" }, [el("span", { class: "pill mute", text: CATN[it.cat] }), showT ? el("span", { class: "note", text: "  " + shortName(S.tmap[it.teacher]) }) : null, el("div", { style: "margin-top:6px", text: it.title })]),
+          el("div", null, [el("div", { class: "qty", text: x.qty ? qtyText(it, x.done) + " / " + qtyText(it, it.target) : (it.mode === "bin" ? (x.full ? "bajarildi" : "bajarilmagan") : "miqdorsiz") }),
+            el("div", { style: "text-align:right;margin-top:4px" }, [el("span", { class: "pill " + SCLS[x.status], text: STATUS[x.status] }), x.late ? el("span", { class: "pill bad", text: "Kechikkan", style: "margin-left:4px" }) : null])])]),
+        x.qty ? el("div", { class: "bar" }, [el("i", { style: "width:" + x.p * 100 + "%" })]) : null,
+        el("div", { class: "meta" }, [el("span", { text: "Reja: " + (it.targetText || "belgilanmagan") }), el("span", { text: "Muddat: " + it.muddat + (it.due ? " (" + fmtDate(it.due) + ")" : "") }), it.standing ? el("span", { text: "Doimiy nazorat" }) : null, el("span", { text: "Dalil: " + it.evidenceRule }), !x.counted ? el("span", { text: it.override ? "Hisobdan chiqarilgan" : "Foizga kirmaydi" }) : null]),
+        it.note ? el("div", { class: "note", text: "Izoh: " + it.note }) : null,
+        logs.length ? el("div", { class: "clog" }, logs.slice(0, 4).map(function (c) { return el("span", { text: fmtDate(c.date) + " · " + qtyText(it, c.amount) + " · dalil: " + c.evidence }); }).concat(logs.length > 4 ? [el("span", { text: "… yana " + (logs.length - 4) + " ta qayd" })] : [])) : null]);
+      if (S.edit === it.id) node.appendChild(editItemForm(it));
+      else node.appendChild(el("div", { class: "acts", style: "grid-column:auto" }, [el("button", { class: "btn sm primary", type: "button", text: "Ish qayd etish", onclick: function () { go("log", { lt: it.teacher, li: it.id, ld: today(), la: "1" }); } }), el("button", { class: "btn sm", type: "button", text: "Tahrirlash", onclick: function () { S.edit = it.id; S.f = Object.assign({}, S.f, { et: it.title, ec: it.cat, em: it.mode, eg: it.target == null ? "" : it.target, eu: it.unit || "", ed: it.due || "", emu: it.muddat, eo: it.override ? "1" : "", en: it.note || "" }); render(); } })]));
+      return node;
+    }
+    var MODES = [["qty", "Miqdor bo'yicha (reja sonli)"], ["bin", "Bajarildi / bajarilmadi"], ["free", "Hisobga olinmaydi"]];
+    function addItemForm() {
+      return el("div", { class: "form", style: "margin-top:6px" }, [F("O'qituvchi", "at", { type: "select", opts: teacherOpts(false) }), F("Yo'nalish", "acat", { type: "select", opts: catOpts(false) }), F("Band / topshiriq nomi", "an", { wide: true, ph: "Masalan: Universitet rivoji uchun tushum" }),
+        F("Hisoblash turi", "amode", { type: "select", opts: MODES }), F("Reja miqdori", "ag", { type: "number", min: "1", step: "1", ph: "masalan 2 yoki 2500000" }), F("Birlik", "aunit", { type: "select", opts: UNITS.map(function (u) { return [u, u]; }) }), F("Muddat (sana)", "ad", { type: "date" }),
+        el("div", { class: "acts" }, [el("button", { class: "btn primary", type: "button", text: "Rejaga qo'shish", onclick: addItem })])]);
+    }
+    function addItem() {
+      var t = S.f.at || (S.teachers[0] && S.teachers[0].id), title = (S.f.an || "").trim(), mode = S.f.amode || "qty", g = S.f.ag === "" || S.f.ag == null ? null : Number(S.f.ag);
+      if (!t) { toast("err", "Avval o'qituvchi qo'shing."); return render(); }
+      if (!title) { toast("err", "Band nomini kiriting."); return render(); }
+      if (mode === "qty" && !(g > 0)) { toast("err", "Miqdor bo'yicha band uchun reja miqdorini kiriting."); return render(); }
+      var cat = S.f.acat || "tijorat", sec = { ilmiy: "III", uslubiy: "II", tijorat: "V" }[cat] || "IV", no = 1 + Math.max(0, Math.max.apply(null, S.items.filter(function (i) { return i.teacher === t && i.sec === sec; }).map(function (i) { return i.no; }).concat([0])));
+      var unit = mode === "qty" ? (S.f.aunit || "ta") : "", id = t + "-" + sec + "-" + String(no).padStart(2, "0") + "x" + Date.now().toString(36).slice(-3);
+      var d = { teacher: t, year: YEAR, sec: sec, no: no, cat: cat, kind: null, band: bandKey(title), title: title, mode: mode, target: mode === "qty" ? g : null, unit: unit, targetText: mode === "qty" ? g + " " + unit : "", muddat: S.f.ad ? fmtDate(S.f.ad) : "belgilanmagan", due: S.f.ad || null, standing: false, evidenceRule: "", override: false, note: "" };
+      run(setDoc(doc(db, "items", id), d), "Band rejaga qo'shildi.", function () { S.addOpen = false; });
+    }
+    function editItemForm(it) {
+      return el("div", { class: "form", style: "margin-top:6px" }, [F("Band nomi", "et", { wide: true }), F("Yo'nalish", "ec", { type: "select", opts: catOpts(false) }), F("Hisoblash turi", "em", { type: "select", opts: MODES }),
+        F("Reja miqdori", "eg", { type: "number", min: "1", step: "1" }), F("Birlik", "eu", { type: "select", opts: [["", "-"]].concat(UNITS.map(function (u) { return [u, u]; })) }), F("Muddat (sana)", "ed", { type: "date" }), F("Muddat (matn)", "emu"),
+        F("Hisobda", "eo", { type: "select", opts: [["", "Hisobga kiradi"], ["1", "Asosli o'zgartirildi (hisobdan chiqarish)"]] }), F("Izoh / bayonnoma raqami", "en", { wide: true }),
+        el("div", { class: "acts" }, [el("button", { class: "btn primary", type: "button", text: "Saqlash", onclick: function () { saveItem(it); } }), el("button", { class: "btn", type: "button", text: "Bekor qilish", onclick: function () { S.edit = null; render(); } }),
+          S.confirm === "i:" + it.id ? el("button", { class: "btn danger", type: "button", text: "Ha, bandni o'chirish", onclick: function () { delItem(it); } }) : el("button", { class: "btn danger", type: "button", text: "O'chirish", onclick: function () { S.confirm = "i:" + it.id; render(); } })])]);
+    }
+    function saveItem(it) {
+      var mode = S.f.em, g = S.f.eg === "" ? null : Number(S.f.eg), title = (S.f.et || "").trim();
+      if (!title) { toast("err", "Band nomi bo'sh bo'lmasin."); return render(); }
+      if (mode === "qty" && !(g > 0)) { toast("err", "Miqdor bo'yicha band uchun reja miqdori kerak."); return render(); }
+      if (S.f.eo && !(S.f.en || "").trim()) { toast("err", "Bandni hisobdan chiqarish uchun izohga bayonnoma raqamini yozing."); return render(); }
+      var unit = mode === "qty" ? (S.f.eu || "ta") : "";
+      run(updateDoc(doc(db, "items", it.id), { title: title, band: it.kind ? it.band : bandKey(title), cat: S.f.ec, mode: mode, target: mode === "qty" ? g : null, unit: unit, targetText: mode === "qty" ? g + " " + unit : it.targetText, due: S.f.ed || null, muddat: S.f.emu || it.muddat, override: !!S.f.eo, note: (S.f.en || "").trim() }), "Band saqlandi.", function () { S.edit = null; });
+    }
+    function delItem(it) {
+      if ((S.by[it.id] || []).length) { S.confirm = null; toast("err", "Bu bandga bajarilgan ish qayd etilgan. Avval qaydlarni o'chiring yoki bandni hisobdan chiqaring."); return render(); }
+      run(deleteDoc(doc(db, "items", it.id)), "Band o'chirildi.", function () { S.edit = null; S.confirm = null; });
+    }
+
+    function pLog() {
+      var out = [], t = S.f.lt || (S.teachers[0] && S.teachers[0].id);
+      var its = itemsOf(function (i) { return i.teacher === t && !i.override; }), it = its.filter(function (i) { return i.id === S.f.li; })[0] || its[0];
+      if (it && S.f.li !== it.id) S.f.li = it.id;
+      var qty = it && it.mode === "qty";
+      out.push(el("div", { class: "panel" }, [el("h2", { text: "Bajarilgan ishni qayd etish" }), el("div", { class: "notice", style: "margin-bottom:14px", text: "Har bir qayd dalil bilan saqlanadi (havola, fayl nomi yoki bayonnoma raqami). Band holati qaydlar yig'indisidan avtomatik hisoblanadi." }),
+        el("div", { class: "form" }, [F("O'qituvchi", "lt", { type: "select", opts: teacherOpts(false), re: true }),
+          F("Reja bandi", "li", { type: "select", opts: its.map(function (i) { var x = info(i); return [i.id, CATN[i.cat] + ": " + clip(i.band, 55) + (x.qty ? " (" + x.done + "/" + i.target + ")" : (x.full ? " (bajarilgan)" : ""))]; }), wide: true }),
+          qty ? F("Bajarilgan miqdor" + (it.unit ? " (" + it.unit + ")" : ""), "la", { type: "number", min: "1", step: it.unit === "so'm" ? "1000" : "1" }) : null, F("Sana", "ld", { type: "date" }), F("Dalil", "le", { wide: true, ph: "DOI/havola, fayl nomi, bayonnoma raqami yoki sertifikat" }),
+          el("div", { class: "acts" }, [el("button", { class: "btn primary", type: "button", text: "Saqlash", onclick: function () { addLog(it); } })])])]));
+      
+      var rows = allComps().slice().sort(function (a, b) { return String(b.date).localeCompare(String(a.date)) || String(b.createdAt).localeCompare(String(a.createdAt)); }).map(function (c) {
+        var it2 = S.items.filter(function (i) { return i.id === c.item; })[0]; if (!it2) return null;
+        return el("tr", null, [el("td", { text: fmtDate(c.date) }), el("td", { text: shortName(S.tmap[c.teacher]) }), el("td", null, [clip(it2.band, 70), el("div", { class: "sub", text: CATN[it2.cat] })]), el("td", { class: "n", text: qtyText(it2, c.amount) }), el("td", { text: c.evidence }),
+          el("td", { class: "n" }, [S.confirm === "c:" + c.id ? el("button", { class: "btn sm danger", type: "button", text: "Ha, o'chirish", onclick: function () { run(deleteDoc(doc(db, "completions", c.id)), "Qayd o'chirildi.", function () { S.confirm = null; }); } }) : el("button", { class: "btn sm", type: "button", text: "O'chirish", onclick: function () { S.confirm = "c:" + c.id; render(); } })])]);
+      }).filter(Boolean);
+      out.push(el("div", { class: "panel" }, [el("h2", { text: "Tasdiqlangan ishlar tarixi" }), rows.length ? el("div", { class: "scroll" }, [el("table", null, [el("thead", null, [el("tr", null, ["Sana", "O'qituvchi", "Band", "Miqdor", "Dalil", ""].map(function (h, i) { return el("th", { class: i === 3 || i === 5 ? "n" : "", text: h }); }))]), el("tbody", null, rows)])]) : el("div", { class: "empty", text: "Hali bajarilgan ish qayd etilmagan." })]));
+      return out;
+    }
+    function addLog(it) {
+      if (!it) { toast("err", "Reja bandi tanlanmagan."); return render(); }
+      var qty = it.mode === "qty", a = qty ? Number(S.f.la) : 1, ev = (S.f.le || "").trim();
+      if (!(a > 0)) { toast("err", "Miqdor 0 dan katta bo'lishi kerak."); return render(); }
+      if (!S.f.ld) { toast("err", "Sanani tanlang."); return render(); }
+      if (!ev) { toast("err", "Dalilni kiriting (havola, fayl nomi yoki bayonnoma)."); return render(); }
+      run(addDoc(collection(db, "completions"), { item: it.id, teacher: it.teacher, amount: a, date: S.f.ld, evidence: ev, createdAt: new Date().toISOString() }), "Qayd saqlandi, monitoring yangilandi.", function () { S.f.le = ""; S.f.la = "1"; });
+    }
+
+    function reportItems() {
+      var c = S.f.rc || "", b = S.f.rb || "", t = S.f.rt || "";
+      return itemsOf(function (i) { return (!c || i.cat === c) && (!b || i.band === b) && (!t || i.teacher === t); });
+    }
+    function pReport() {
+      var c = S.f.rc || "", t = S.f.rt || "", arr = reportItems(), ts = t ? S.teachers.filter(function (x) { return x.id === t; }) : S.teachers, st = stats(arr);
+      var bands = []; S.items.filter(function (i) { return !c || i.cat === c; }).forEach(function (i) { if (bands.indexOf(i.band) < 0) bands.push(i.band); });
+      var tools = el("div", { class: "tools" }, [sel("rc", catOpts(true)), sel("rb", [["", "Barcha bandlar"]].concat(bands.map(function (b) { return [b, clip(b, 60)]; }))), sel("rt", teacherOpts(true)), el("button", { class: "btn primary", type: "button", text: "Jadvalni yuklab olish (CSV)", onclick: downloadCsv })]);
+      var cards = el("div", { class: "cards" }, [card("Tanlangan o'qituvchilar", String(ts.length), "Butun kafedra yoki filtr bo'yicha"), card("Reja bandlari", String(arr.length), st.total + " tasi foizga kiradi"), card("Bajarilish", pc(st.pct), st.full + " ta band to'liq bajarilgan")]);
+      var rows = ts.map(function (tt) { var a = arr.filter(function (i) { return i.teacher === tt.id; }), s = stats(a); return el("tr", null, [el("td", null, [el("b", { text: tt.name })]), el("td", { class: "n", text: String(a.length) }), el("td", { class: "n", text: String(s.full) }), el("td", { class: "n", text: String(s.total - s.full) }), el("td", { class: "n" }, [el("b", { text: pc(s.pct) })])]); });
+      rows.push(el("tr", null, [el("td", null, [el("b", { text: "KAFEDRA JAMI" })]), el("td", { class: "n", text: String(arr.length) }), el("td", { class: "n", text: String(st.full) }), el("td", { class: "n", text: String(st.total - st.full) }), el("td", { class: "n" }, [el("b", { text: pc(st.pct) })])]));
+      var det = arr.map(function (i) { var x = info(i); return el("tr", null, [el("td", { text: shortName(S.tmap[i.teacher]) }), el("td", { text: CATN[i.cat] }), el("td", { text: clip(i.band, 70) }), el("td", { class: "n", text: x.qty ? qtyText(i, i.target) : "-" }), el("td", { class: "n", text: x.qty ? fmtN(x.done) : (x.full ? "+" : "-") }), el("td", { class: "n" }, [el("span", { class: "pill " + SCLS[x.status], text: STATUS[x.status] })]), el("td", { class: "n", text: x.counted ? Math.round(x.p * 100) + "%" : "-" })]); });
+      function tbl(h, r, cls) { return el("div", { class: "scroll" }, [el("table", null, [el("thead", null, [el("tr", null, h.map(function (x, i) { return el("th", { class: cls.indexOf(i) >= 0 ? "n" : "", text: x }); }))]), el("tbody", null, r)])]); }
+      return [el("div", { class: "panel" }, [el("h2", { text: "Kafedra monitoringi: umumiy hisobot" }), tools, el("div", { class: "notice", style: "margin-bottom:14px", text: YEAR.replace("-", "/") + " | " + (c ? CATN[c] : "Barcha yo'nalishlar") + " | " + (S.f.rb ? clip(S.f.rb, 50) : "Barcha bandlar") + " | " + (t ? S.tmap[t].name : "Butun kafedra") + " | Sana: " + fmtDate(today()) }), cards]),
+        el("div", { class: "panel" }, [el("h2", { text: "O'qituvchilar bo'yicha" }), tbl(["Professor-o'qituvchi", "Reja bandlari", "Bajarilgan (+)", "Bajarilmagan (−)", "Bajarilish"], rows, [1, 2, 3, 4])]),
+        el("div", { class: "panel" }, [el("h2", { text: "Bandlar kesimida batafsil holat" }), tbl(["O'qituvchi", "Yo'nalish", "Band", "Reja", "Bajarildi", "Holat", "Foiz"], det, [3, 4, 5, 6])])];
+    }
+    function downloadCsv() {
+      function q(v) { v = String(v == null ? "" : v); return /[";\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
+      var lines = [["O'qituvchi", "Yo'nalish", "Band", "Reja", "Bajarilgan", "Holat", "Foiz", "Muddat"].map(q).join(";")];
+      reportItems().forEach(function (i) { var x = info(i); lines.push([S.tmap[i.teacher].name, CATN[i.cat], i.band, x.qty ? i.target + " " + i.unit : "", x.qty ? x.done : (x.full ? 1 : 0), STATUS[x.status], x.counted ? Math.round(x.p * 100) : "", i.due || ""].map(q).join(";")); });
+      
+      var blob = new Blob(["\uFEFF" + lines.join("\r\n")], {type: "text/csv;charset=utf-8;"});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = "kafedra_hisobot.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function pTg() {
+      var t = S.tmap[S.f.gt] || S.teachers[0]; if (!t) return [el("div", { class: "empty", text: "O'qituvchilar hali kiritilmagan." })];
+      function bubble(title, text) {
+        var b = el("div", { class: "bubble" }, [text, el("span", { class: "t", text: "09:00" })]), copy = el("button", { class: "btn sm", type: "button", text: "Nusxa olish" });
+        copy.addEventListener("click", function () { function fb() { var r = document.createRange(); r.selectNodeContents(b); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); copy.textContent = "Belgilandi"; } try { navigator.clipboard.writeText(text).then(function () { copy.textContent = "Nusxa olindi"; }, fb); } catch (e) { fb(); } });
+        return el("div", { class: "phone" }, [el("div", { class: "who", text: title }), b, copy]);
+      }
+      return [el("div", { class: "panel gap" }, [el("div", { class: "notice", text: "Telegram bot hozircha faqat o'qituvchilarni tizimga ulash va haftalik avtomatik eslatma yuborish uchun ishlaydi. Quyida bot yuboradigan xabarlar namunasi ko'rsatilgan." }),
+        el("div", { class: "tools" }, [["haftalik", "Haftalik (dushanba 09:00)"], ["oylik", "Oylik (oyning 1-kuni)"]].map(function (k) { return el("button", { class: "btn" + (S.tgKind === k[0] ? " primary" : ""), type: "button", text: k[1], onclick: function () { S.tgKind = k[0]; render(); } }); }).concat([sel("gt", teacherOpts(false))])),
+        bubble("Bot → " + shortName(t) + (t.phone ? " (" + t.phone + ")" : " (telefon kiritilmagan)"), teacherMsg(t, S.tgKind)),
+        el("div", { class: "note", text: "\"Ortda\" qoidasi: bajarilish o'quv yili o'tgan ulushdan " + GAP + " foiz punktdan ko'proq past bo'lsa. Doimiy nazorat bandlari (davomat, jurnal) eslatmaga kirmaydi." })])];
+    }
+
+    function pImport() {
+      var imp = S.imp, out = [];
+      var fi = el("input", { id: "f-files", type: "file", accept: ".docx", multiple: true });
+      fi.addEventListener("change", async function () {
+        var files = Array.prototype.slice.call(fi.files || []); if (!files.length) return;
+        S.imp = { busy: true, res: [], log: "" }; render();
+        var res = [];
+        for (var i = 0; i < files.length; i++) { try { var p = await parseDocx(files[i]); res.push({ file: files[i].name, p: p }); } catch (e) { res.push({ file: files[i].name, err: e.message || String(e) }); } }
+        S.imp = { busy: false, res: res, log: "" }; render();
+      });
+      out.push(el("div", { class: "panel gap" }, [el("h2", { text: "Shaxsiy ish rejasini Word fayldan yuklash" }), el("div", { class: "notice", text: "Kafedra shablonidagi .docx faylni tanlang (bir nechta faylni birga tanlash mumkin). O'quv-uslubiy, ilmiy va ustoz-shogird bo'limlari avtomatik o'qiladi. Mavjud bandlar o'zgartirilmaydi." }), el("div", { class: "form" }, [el("label", { for: "f-files" }, ["Reja fayllari (.docx)", fi])])]));
+      if (imp && imp.busy) out.push(el("div", { class: "panel empty", text: "Fayllar o'qilmoqda…" }));
+      if (imp && !imp.busy && imp.res.length) {
+        var rows = imp.res.map(function (r) {
+          if (r.err) return el("tr", null, [el("td", { text: r.file }), el("td", { colspan: "5" }, [el("span", { class: "pill bad", text: r.err })])]);
+          var ex = S.teachers.filter(function (t) { return normName(t.name) === normName(r.p.name); })[0], tid = ex ? ex.id : null, c = { II: 0, III: 0, IV: 0 }, fresh = 0;
+          r.p.items.forEach(function (i) { c[i.sec]++; if (!tid || !S.items.some(function (x) { return x.id === tid + "-" + i.sec + "-" + String(i.no).padStart(2, "0"); })) fresh++; });
+          r.fresh = fresh;
+          return el("tr", null, [el("td", { text: r.file }), el("td", null, [el("b", { text: r.p.name }), el("div", { class: "sub", text: r.p.position })]), el("td", { class: "n", text: String(c.II) }), el("td", { class: "n", text: String(c.III) }), el("td", { class: "n", text: String(c.IV) }), el("td", { class: "n" }, [el("span", { class: "pill " + (ex ? "warn" : "good"), text: ex ? "Mavjud: yangi " + fresh + " ta band" : "Yangi o'qituvchi" })])]);
+        });
+        var okc = imp.res.filter(function (r) { return r.p; }).length;
+        out.push(el("div", { class: "panel gap" }, [el("h2", { text: "Yuklashdan oldin tekshiruv" }), el("div", { class: "scroll" }, [el("table", null, [el("thead", null, [el("tr", null, [el("th", { text: "Fayl" }), el("th", { text: "O'qituvchi" }), el("th", { class: "n", text: "II uslubiy" }), el("th", { class: "n", text: "III ilmiy" }), el("th", { class: "n", text: "IV ustoz/ma'naviy" }), el("th", { class: "n", text: "Natija" })])]), el("tbody", null, rows)])]),
+          okc ? el("div", { class: "acts", style: "grid-column:auto" }, [el("button", { id: "f-doimp", class: "btn primary", type: "button", text: "Bazaga yozish", onclick: doImport }), el("span", { class: "note", id: "imp-log", text: imp.log || "" })]) : null]));
+      }
+      return out;
+    }
+    async function doImport() {
+      var btn = document.getElementById("f-doimp"), log = document.getElementById("imp-log"); if (btn) btn.disabled = true;
+      var wrote = 0, skipped = 0, failed = 0, all = S.imp.res.filter(function (r) { return r.p; });
+      try {
+        for (var k = 0; k < all.length; k++) {
+          var p = all[k].p, ex = S.teachers.filter(function (t) { return normName(t.name) === normName(p.name); })[0], tid = ex ? ex.id : "t" + Date.now().toString(36) + k;
+          if (!ex) { await setDoc(doc(db, "teachers", tid), { name: p.name, position: p.position || POS[3], phone: "" }); S.teachers.push({ id: tid, name: p.name, position: p.position, phone: "" }); }
+          for (var j = 0; j < p.items.length; j++) {
+            var it = p.items[j], id = tid + "-" + it.sec + "-" + String(it.no).padStart(2, "0");
+            if (S.items.some(function (x) { return x.id === id; })) { skipped++; continue; }
+            try { await setDoc(doc(db, "items", id), Object.assign({ teacher: tid }, it)); wrote++; } catch (e) { failed++; }
+            if (log) log.textContent = p.name + ": " + wrote + " ta band yozildi…";
+          }
+        }
+        toast(failed ? "err" : "ok", wrote + " ta band yozildi, " + skipped + " tasi avvaldan bor edi" + (failed ? ", " + failed + " tasi yozilmadi" : "") + ".");
+        S.imp = null; S.page = "plans"; S.f = {};
+      } catch (e) { toast("err", "Yozishda xato: " + ((e && e.message) || "noma'lum")); if (btn) btn.disabled = false; }
+      render();
+    }
+
+    // ---------- asosiy chizish ----------
+    function render() {
+      var ae = document.activeElement, fid = ae && ae.id && app.contains(ae) ? ae.id : null, caret = null;
+      try { if (fid && ae.selectionStart != null) caret = ae.selectionStart; } catch (e) { caret = null; }
+      calc();
+      var ready = S.got.t && S.got.i && S.got.c, main = el("main", null, []);
+      var title = NAV.filter(function (n) { return n[0] === S.page; })[0];
+      main.appendChild(el("div", { class: "top" }, [el("div", null, [el("div", { class: "eyebrow", text: "Matematika kafedrasi · " + YEAR.replace("-", "/") + " o'quv yili" }), el("h1", { text: title ? title[1] : "" })]), el("span", { class: "pill " + (S.admin ? "good" : "mute"), text: S.admin ? "Admin rejimi" : "Faqat ko'rish" })]));
+      if (S.demo) main.appendChild(el("div", { class: "banner", role: "status", text: "NAMUNAVIY MA'LUMOT. Ko'rsatilayotgan natijalar haqiqiy emas va hech qayerga saqlanmaydi." }));
+      if (S.msg) main.appendChild(el("div", { class: "toast " + S.msg.t, role: "status", text: S.msg.x }));
+      if (S.err) main.appendChild(el("div", { class: "toast err", role: "alert", text: S.err }));
+      if (!ready) main.appendChild(el("div", { class: "empty", text: S.late ? "Ma'lumotlar bazasiga hozircha ulanib bo'lmadi. Ulanish tiklangach sahifa o'zi yangilanadi." : "Ma'lumotlar yuklanmoqda…" }));
+      else {
+        var body = { panel: pPanel, teachers: pTeachers, plans: pPlans, log: pLog, report: pReport, tg: pTg, "import": pImport }[S.page]();
+        if (!S.items.length && S.page !== "import" && S.page !== "teachers") main.appendChild(el("div", { class: "notice", text: "Reja bandlari hali kiritilmagan. \"Rejani yuklash (Word)\" bo'limidan o'qituvchilarning .docx rejalarini yuklang." }));
+        body.forEach(function (n) { if (n) main.appendChild(n); });
+      }
+      var nav = el("aside", null, [el("div", { class: "brand" }, ["◆ KAFEDRA", el("span", { text: "MONITOR" })])].concat(NAV.map(function (n) {
+        return el("button", { class: "nav", type: "button", "aria-current": S.page === n[0] ? "page" : null, text: n[1], onclick: function () { go(n[0], n[0] === "log" ? { lt: S.f.lt, ld: today(), la: "1" } : {}); } });
+      })).concat([el("div", { class: "side-foot" }, [el("span", { text: "Admin" }), el("button", { class: "btn" + (S.demo ? " on" : ""), type: "button", "aria-pressed": S.demo ? "true" : "false", text: S.demo ? "Namunani o'chirish" : "Namunaviy natijalar", onclick: function () { S.demo = !S.demo; S.edit = null; S.addOpen = false; render(); } })])]));
+      while (app.firstChild) app.removeChild(app.firstChild);
+      app.appendChild(nav); app.appendChild(main);
+      if (fid) { var n = document.getElementById(fid); if (n) { n.focus(); try { if (caret != null && n.setSelectionRange) n.setSelectionRange(caret, caret); } catch (e) { /* type=number/date */ } } }
+    }
+
+    // Firebase'ga ulanishni boshlash
+    function start() {
+      render();
+      var timer = setTimeout(function () { if (!(S.got.t && S.got.i && S.got.c)) { S.late = true; render(); } }, 10000);
+      
+      function onErr(e) { S.err = "Bazadan o'qishda xato: " + ((e && e.message) || "noma'lum"); render(); }
+      
+      function sub(name, key, set) { 
+        onSnapshot(collection(db, name), function (snap) { 
+          set(snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); })); 
+          S.got[key] = 1; 
+          clearTimeout(timer); 
+          S.late = false; 
+          render(); 
+        }, onErr); 
+      }
+      
+      sub("teachers", "t", function (a) { S.teachers = a.sort(function (x, y) { return x.id.localeCompare(y.id); }); });
+      sub("items", "i", function (a) { S.items = a; });
+      sub("completions", "c", function (a) { S.comps = a; });
+    }
+    
+    start();
+  }
+})();
+</script>
+
+</body></html>
