@@ -267,8 +267,39 @@
       <div class="header">
         <h1>O'qituvchilar</h1>
       </div>
+      
+      <!-- Yangi o'qituvchi qo'shish formasi -->
+      <div class="panel" style="margin-bottom: 20px;">
+        <h2 style="margin-bottom: 15px; font-size: 18px;">Yangi o'qituvchi qo'shish</h2>
+        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+          <input type="text" id="t-name" placeholder="F.I.Sh. (Masalan: Karimov Bobur)" style="flex: 2; min-width: 200px; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: white;">
+          <select id="t-pos" style="flex: 1; min-width: 150px; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: white;">
+            <option>Professor</option>
+            <option>Dotsent</option>
+            <option>Katta o'qituvchi</option>
+            <option>O'qituvchi</option>
+            <option>Assistent</option>
+          </select>
+          <input type="text" id="t-phone" placeholder="Telefon (+998901234567)" style="flex: 1; min-width: 150px; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: white;">
+          <button class="btn-upload" onclick="addTeacher()">+ Qo'shish</button>
+        </div>
+      </div>
+
+      <!-- O'qituvchilar ro'yxati jadvali -->
       <div class="panel">
-        <p style="color: var(--text-muted);">Bu bo'limda o'qituvchilar ro'yxati ko'rinadi.</p>
+        <table id="teachers-table">
+          <thead>
+            <tr>
+              <th>F.I.Sh.</th>
+              <th>Lavozimi</th>
+              <th>Telefon</th>
+              <th>Telegram holati</th>
+            </tr>
+          </thead>
+          <tbody id="teachers-list">
+            <!-- JS orqali to'ldiriladi -->
+          </tbody>
+        </table>
       </div>
     </div>
 
