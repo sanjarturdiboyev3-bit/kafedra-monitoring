@@ -63,53 +63,82 @@
   .header h1 { font-family: var(--font-title); font-size: 28px; font-weight: 700; }
   .header .badge { background: #dbeafe; color: var(--accent); padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; }
 
-  .grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 40px; }
-  .section-card {
-    background: var(--bg-card); border: 1px solid var(--border);
-    border-radius: 20px; padding: 24px; cursor: pointer; transition: all 0.3s;
-    position: relative; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-  }
-  .section-card:hover { transform: translateY(-5px); border-color: var(--accent); box-shadow: 0 10px 20px -10px rgba(59, 130, 246, 0.2); }
-  .section-card h3 { font-size: 18px; margin-bottom: 10px; color: var(--text-main); }
-  .section-card p { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+  /* HISOBOT UCHUN GRID */
+  .report-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 24px; }
+  .report-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
   
-  .panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 24px; margin-bottom: 24px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-  .panel-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;}
-  .panel-title h2 { font-family: var(--font-title); font-size: 20px; }
-  .btn-back { background: transparent; border: 1px solid var(--border); color: var(--text-main); padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
-  .btn-back:hover { background: rgba(0,0,0,0.05); }
+  .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 24px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+  .card-title { font-family: var(--font-title); font-size: 18px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+  
+  /* STATISTIK KARTALAR */
+  .stat-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+  .stat-card { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 20px; display: flex; align-items: center; gap: 16px; }
+  .stat-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+  .stat-info h4 { font-size: 13px; color: var(--text-muted); margin-bottom: 4px; }
+  .stat-info .value { font-size: 24px; font-weight: 700; font-family: var(--font-title); }
+  .stat-info .sub { font-size: 12px; color: var(--good); font-weight: 600; }
 
-  .select-teacher { background: #fff; border: 1px solid var(--border); color: var(--text-main); padding: 10px 15px; border-radius: 8px; font-size: 15px; outline: none; cursor: pointer; }
-  
-  .table-responsive { width: 100%; overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 1000px; }
+  /* SELECT */
+  .year-select { background: #fff; border: 1px solid var(--border); padding: 8px 12px; border-radius: 8px; font-size: 14px; font-weight: 500; outline: none; cursor: pointer; }
+
+  /* CHART */
+  .chart-container { position: relative; height: 300px; width: 100%; }
+  .doughnut-container { position: relative; height: 250px; width: 100%; display: flex; justify-content: center; align-items: center; }
+  .doughnut-center { position: absolute; text-align: center; }
+  .doughnut-center h3 { font-size: 32px; font-family: var(--font-title); font-weight: 700; color: var(--text-main); }
+  .doughnut-center p { font-size: 12px; color: var(--text-muted); }
+
+  /* JADVAL */
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
   th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid var(--border); }
-  th { background: #f8fafc; font-weight: 600; color: var(--text-muted); font-size: 12px; text-transform: uppercase; white-space: nowrap; }
-  
-  td input, td select { background: transparent; border: 1px solid transparent; color: var(--text-main); padding: 6px; border-radius: 6px; width: 100%; font-family: var(--font); font-size: 14px; transition: 0.2s; text-align: center; }
-  td input:hover, td input:focus { border-color: var(--border); background: #f8fafc; outline: none; }
+  th { font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+
+  /* PROGRESS BAR */
+  .progress-wrapper { display: flex; align-items: center; gap: 10px; }
+  .progress-bar { flex: 1; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 4px; }
   
   .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
   .status-bad { background: #fee2e2; color: var(--bad); }
   .status-good { background: #d1fae5; color: var(--good); }
-  
-  .btn-upload { background: var(--accent); color: #fff; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 500; transition: 0.2s; white-space: nowrap; font-size: 13px;}
-  .btn-upload:hover { background: var(--accent-hover); }
-  
-  .toast { position: fixed; bottom: 20px; right: 20px; background: #fff; border: 1px solid var(--border); padding: 16px 24px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); z-index: 100; font-weight: 500; transform: translateY(100px); opacity: 0; transition: 0.3s; }
-  .toast.show { transform: translateY(0); opacity: 1; }
-  .toast.ok { border-left: 4px solid var(--good); }
-  .toast.err { border-left: 4px solid var(--bad); }
 
   .hidden { display: none !important; }
   
+  @media (max-width: 1024px) {
+    .report-grid, .report-grid-2 { grid-template-columns: 1fr; }
+    .stat-cards { grid-template-columns: repeat(2, 1fr); }
+  }
   @media (max-width: 768px) {
     .shell { flex-direction: column; }
     aside { width: 100%; height: auto; position: static; flex-direction: row; overflow-x: auto; padding: 10px; }
     .logo-area, .logo-sub { display: none; }
     .nav-btn { padding: 10px; white-space: nowrap; }
     main { padding: 20px; }
+    .stat-cards { grid-template-columns: 1fr; }
   }
+
+  /* ODDIY BO'LIMLAR UCHUN (Asosiy, O'qituvchilar) */
+  .grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 40px; }
+  .section-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 24px; cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden; }
+  .section-card:hover { transform: translateY(-5px); border-color: var(--accent); box-shadow: 0 10px 20px -10px rgba(59, 130, 246, 0.2); }
+  .section-card h3 { font-size: 18px; margin-bottom: 10px; color: var(--text-main); }
+  .section-card p { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+  
+  .panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 24px; margin-bottom: 24px; overflow: hidden; }
+  .panel-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;}
+  .panel-title h2 { font-family: var(--font-title); font-size: 20px; }
+  .btn-back { background: transparent; border: 1px solid var(--border); color: var(--text-main); padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+  .btn-back:hover { background: rgba(0,0,0,0.05); }
+  .select-teacher { background: #fff; border: 1px solid var(--border); color: var(--text-main); padding: 10px 15px; border-radius: 8px; font-size: 15px; outline: none; cursor: pointer; }
+  .table-responsive { width: 100%; overflow-x: auto; }
+  td input { background: transparent; border: 1px solid transparent; color: var(--text-main); padding: 6px; border-radius: 6px; width: 100%; font-family: var(--font); font-size: 14px; text-align: center; }
+  td input:hover, td input:focus { border-color: var(--border); background: #f8fafc; outline: none; }
+  .btn-upload { background: var(--accent); color: #fff; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 500; font-size: 13px;}
+  .btn-upload:hover { background: var(--accent-hover); }
+  .toast { position: fixed; bottom: 20px; right: 20px; background: #fff; border: 1px solid var(--border); padding: 16px 24px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); z-index: 100; font-weight: 500; transform: translateY(100px); opacity: 0; transition: 0.3s; }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.ok { border-left: 4px solid var(--good); }
+  .toast.err { border-left: 4px solid var(--bad); }
 </style>
 </head>
 <body>
@@ -128,9 +157,10 @@
   </aside>
 
   <main>
+    <!-- ASOSIY SAHIFA -->
     <div id="view-home">
       <div class="header">
-        <h1>Asosiy sahifa</h1>
+        <h1>Boshqaruv paneli</h1>
         <span class="badge">Admin rejimi</span>
       </div>
       <div class="grid-cards">
@@ -157,6 +187,115 @@
       </div>
     </div>
 
+    <!-- HISOBOT BO'LIMI (Rasmdagidek) -->
+    <div id="view-report" class="hidden">
+      <div class="header">
+        <h1>Boshqaruv paneli</h1>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <select class="year-select">
+            <option>2026-2027</option>
+            <option>2027-2028</option>
+            <option>2025-2026</option>
+          </select>
+          <button class="btn-upload" onclick="downloadExcel()">📥 Excel yuklab olish</button>
+        </div>
+      </div>
+
+      <!-- 1. Statistik kartalar -->
+      <div class="stat-cards">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#e0f2fe; color:#0284c7;">🔬</div>
+          <div class="stat-info"><h4>Ilmiy faoliyat</h4><div class="value">87% <span style="font-size:12px; color:var(--good);">↑ +5%</span></div><div class="sub">Reja: 120 | Bajarildi: 104</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#dcfce7; color:#16a34a;">📝</div>
+          <div class="stat-info"><h4>O'quv-uslubiy</h4><div class="value">92% <span style="font-size:12px; color:var(--good);">↑ +3%</span></div><div class="sub">Reja: 80 | Bajarildi: 74</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#f3e8ff; color:#9333ea;">🤝</div>
+          <div class="stat-info"><h4>Ustoz-shogird</h4><div class="value">78% <span style="font-size:12px; color:var(--good);">↑ +2%</span></div><div class="sub">Reja: 70 | Bajarildi: 55</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#ffedd5; color:#ea580c;">💖</div>
+          <div class="stat-info"><h4>Ma'naviy-ma'rifiy</h4><div class="value">95% <span style="font-size:12px; color:var(--good);">↑ +4%</span></div><div class="sub">Reja: 60 | Bajarildi: 57</div></div>
+        </div>
+      </div>
+
+      <!-- 2. Katta grafik va reyting -->
+      <div class="report-grid">
+        <div class="card">
+          <div class="card-title">📊 Kafedra bo'yicha umumiy ko'rsatkich</div>
+          <div class="chart-container">
+            <canvas id="mainLineChart"></canvas>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">🏆 Reyting jadvali (yil yakuni)</div>
+          <table>
+            <thead><tr><th>№</th><th>O'qituvchi</th><th>Umumiy foiz</th><th>Natija</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td>Karimov B.B.</td><td>96%</td><td>🥇</td></tr>
+              <tr><td>2</td><td>Raximov D.T.</td><td>93%</td><td>🥈</td></tr>
+              <tr><td>3</td><td>Sodiqova M.I.</td><td>91%</td><td>🥉</td></tr>
+              <tr><td>4</td><td>To'xtayev A.A.</td><td>87%</td><td></td></tr>
+              <tr><td>5</td><td>Valiyev S.S.</td><td>85%</td><td></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 3. Shaxsiy kabinet va progress -->
+      <div class="report-grid-2">
+        <div class="card">
+          <div class="card-title">👤 O'qituvchi shaxsiy kabineti</div>
+          <div style="display: flex; gap: 20px; align-items: center;">
+            <div style="width: 100px; height: 100px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 40px;">👤</div>
+            <div>
+              <h3 style="font-size: 18px; margin-bottom: 5px;">Karimov Bobur Baxtiyorovich</h3>
+              <p style="color: var(--text-muted); font-size: 14px;">Dotsent, PhD</p>
+              <p style="color: var(--text-muted); font-size: 14px;">Kafedra staji: 12 yil</p>
+              <div style="margin-top: 10px; font-weight: 600;">Umumiy bajarilish: <span style="color: var(--good);">96%</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">📈 Shaxsiy ish rejasining bajarilishi</div>
+          <div style="display: flex; flex-direction: column; gap: 15px;">
+            <div class="progress-wrapper"><span style="width: 120px; font-size:13px;">Ilmiy faoliyat</span><div class="progress-bar"><div class="progress-fill" style="width: 95%; background: #3b82f6;"></div></div><span style="font-weight:600; font-size:13px;">95%</span></div>
+            <div class="progress-wrapper"><span style="width: 120px; font-size:13px;">O'quv-uslubiy</span><div class="progress-bar"><div class="progress-fill" style="width: 93%; background: #10b981;"></div></div><span style="font-weight:600; font-size:13px;">93%</span></div>
+            <div class="progress-wrapper"><span style="width: 120px; font-size:13px;">Ustoz-shogird</span><div class="progress-bar"><div class="progress-fill" style="width: 90%; background: #8b5cf6;"></div></div><span style="font-weight:600; font-size:13px;">90%</span></div>
+            <div class="progress-wrapper"><span style="width: 120px; font-size:13px;">Ma'naviy-ma'rifiy</span><div class="progress-bar"><div class="progress-fill" style="width: 100%; background: #f59e0b;"></div></div><span style="font-weight:600; font-size:13px;">100%</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Jadval va yakuniy hisobot -->
+      <div class="report-grid">
+        <div class="card">
+          <div class="card-title">📋 Yillik reja va ijro ma'lumotlari</div>
+          <table>
+            <thead><tr><th>Yo'nalish</th><th>Band</th><th>Reja</th><th>Bajarildi</th><th>Foiz</th><th>Holat</th></tr></thead>
+            <tbody>
+              <tr><td>Ilmiy faoliyat</td><td>Maqola (Scopus)</td><td>1</td><td>1</td><td>100%</td><td><span class="status-badge status-good">● Bajarildi</span></td></tr>
+              <tr><td>Ilmiy faoliyat</td><td>Patent</td><td>1</td><td>0</td><td>0%</td><td><span class="status-badge status-bad">● Bajarilmagan</span></td></tr>
+              <tr><td>O'quv-uslubiy</td><td>Darslik</td><td>1</td><td>1</td><td>100%</td><td><span class="status-badge status-good">● Bajarildi</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <div class="card-title">📊 Yakuniy hisobot</div>
+          <div class="doughnut-container">
+            <canvas id="donutChart"></canvas>
+            <div class="doughnut-center">
+              <h3>89%</h3>
+              <p>Umumiy natija</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BO'LIMLAR ICHKI JADVALI -->
     <div id="view-section" class="hidden">
       <div class="header">
         <h1 id="section-title">Bo'lim nomi</h1>
@@ -185,6 +324,7 @@
       </div>
     </div>
 
+    <!-- O'QITUVCHILAR BO'LIMI -->
     <div id="view-teachers" class="hidden">
       <div class="header">
         <h1>O'qituvchilar</h1>
@@ -224,19 +364,7 @@
       </div>
     </div>
 
-    <div id="view-report" class="hidden">
-      <div class="header">
-        <h1>Hisobot</h1>
-        <button class="btn-upload" onclick="downloadExcel()">📥 Umumiy Excel yuklab olish</button>
-      </div>
-      <div class="panel">
-        <h2 style="margin-bottom: 20px;">Umumiy holat diagrammasi</h2>
-        <div style="width: 100%; max-width: 500px; margin: 0 auto;">
-          <canvas id="reportChart"></canvas>
-        </div>
-      </div>
-    </div>
-
+    <!-- TELEGRAM XABARLARI -->
     <div id="view-tg" class="hidden">
       <div class="header">
         <h1>Telegram xabarlari</h1>
@@ -257,6 +385,8 @@
 
   let teachersData = [];
   let currentTijoratData = {}; 
+  let chartInstance = null;
+  let donutChartInstance = null;
   
   const SECTIONS = {
     'oquv': { title: 'I. O\'quv ishlari', tasks: [
@@ -309,7 +439,6 @@
   };
 
   let currentSection = null;
-  let chartInstance = null;
 
   function showToast(msg, type = 'ok') {
     const t = document.getElementById('toast');
@@ -321,7 +450,6 @@
   async function nav(page, sectionId = null) {
     document.querySelectorAll('main > div').forEach(d => d.classList.add('hidden'));
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    
     document.getElementById('btn-export-excel').classList.add('hidden');
 
     if (page === 'home') {
@@ -330,9 +458,7 @@
     } else if (page === 'section') {
       currentSection = sectionId;
       document.getElementById('view-section').classList.remove('hidden');
-      
       if (teachersData.length === 0) await loadTeachersData();
-      
       if (sectionId === 'tijorat') {
         document.getElementById('teacher-select-panel').classList.add('hidden');
         document.getElementById('btn-export-excel').classList.remove('hidden');
@@ -340,7 +466,6 @@
         document.getElementById('teacher-select-panel').classList.remove('hidden');
         populateTeacherSelect();
       }
-      
       renderSectionTable(sectionId);
     } else if (page === 'teachers') {
       document.getElementById('view-teachers').classList.remove('hidden');
@@ -350,11 +475,38 @@
     } else if (page === 'report') {
       document.getElementById('view-report').classList.remove('hidden');
       document.querySelectorAll('.nav-btn')[2].classList.add('active');
-      renderChart();
+      renderReportCharts();
     } else if (page === 'tg') {
       document.getElementById('view-tg').classList.remove('hidden');
       document.querySelectorAll('.nav-btn')[3].classList.add('active');
     }
+  }
+
+  function renderReportCharts() {
+    const ctxLine = document.getElementById('mainLineChart').getContext('2d');
+    if (chartInstance) chartInstance.destroy();
+    chartInstance = new Chart(ctxLine, {
+      type: 'line',
+      data: {
+        labels: ['Sen', 'Okt', 'Nov', 'Dek', 'Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyun'],
+        datasets: [
+          { label: 'Reja', data: [45, 55, 60, 70, 75, 80, 85, 90, 95, 100], borderColor: '#3b82f6', borderDash: [5, 5], tension: 0.4, fill: false },
+          { label: 'Ijro', data: [40, 50, 65, 75, 80, 85, 90, 92, 96, 98], borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', tension: 0.4, fill: true }
+        ]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8 } } } }
+    });
+
+    const ctxDonut = document.getElementById('donutChart').getContext('2d');
+    if (donutChartInstance) donutChartInstance.destroy();
+    donutChartInstance = new Chart(ctxDonut, {
+      type: 'doughnut',
+      data: {
+        labels: ['Ilmiy', 'Uslubiy', 'Ustoz-shogird', 'Ma\'naviy'],
+        datasets: [{ data: [87, 92, 78, 95], backgroundColor: ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b'], borderWidth: 0 }]
+      },
+      options: { cutout: '75%', plugins: { legend: { display: false } } }
+    });
   }
 
   async function loadTeachersData() {
@@ -617,16 +769,6 @@
     XLSX.utils.book_append_sheet(wb, ws, "Tijorat");
     XLSX.writeFile(wb, "Tijoratlashtirish_Hisoboti.xlsx");
     showToast('Excel yuklab olindi!', 'ok');
-  }
-
-  function renderChart() {
-    const ctx = document.getElementById('reportChart').getContext('2d');
-    if (chartInstance) chartInstance.destroy();
-    chartInstance = new Chart(ctx, {
-      type: 'doughnut',
-      data: { labels: ['Bajarildi', 'Jarayonda', 'Bajarilmadi'], datasets: [{ data: [45, 30, 25], backgroundColor: ['#10b981', '#f59e0b', '#ef4444'], borderWidth: 0 }] },
-      options: { cutout: '75%', plugins: { legend: { position: 'bottom', labels: { color: '#1e293b' } } } }
-    });
   }
 
   function downloadExcel() {
