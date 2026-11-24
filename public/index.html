@@ -1,3 +1,8 @@
+Tushundim. Adashtirmaslik uchun, men sizga `public/index.html` faylining **to'liq va yakuniy kodini** beraman. Unda oldingi barcha dizaynlar, 5 ta bo'lim, jadvallar, diagrammalar va **yangi qo'shilgan o'qituvchilar qo'shish formasi** jamlangan.
+
+GitHub'da `public/index.html` faylini ochib, tahrirlash (qalamcha) tugmasini bosing. Ichidagi **hamma narsani o'chirib**, quyidagi kodni to'liq nusxalab joylashtiring:
+
+```html
 <!doctype html>
 <html lang="uz">
 <head>
@@ -170,14 +175,15 @@
   table { width: 100%; border-collapse: collapse; font-size: 14px; }
   th, td { padding: 16px; text-align: left; border-bottom: 1px solid var(--border); }
   th { background: rgba(255,255,255,0.02); font-weight: 600; color: var(--text-muted); font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
-  td input { background: transparent; border: 1px solid transparent; color: var(--text-main); padding: 6px; border-radius: 6px; width: 100%; font-family: var(--font); font-size: 14px; transition: 0.2s; }
-  td input:hover, td input:focus { border-color: var(--border); background: rgba(0,0,0,0.2); outline: none; }
+  td input, td select { background: transparent; border: 1px solid transparent; color: var(--text-main); padding: 8px; border-radius: 6px; width: 100%; font-family: var(--font); font-size: 14px; transition: 0.2s; }
+  td input:hover, td input:focus, td select:hover, td select:focus { border-color: var(--border); background: rgba(0,0,0,0.2); outline: none; }
+  td select option { background: #1e293b; color: white; }
   
   .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
   .status-bad { background: rgba(239, 68, 68, 0.15); color: var(--bad); }
   .status-good { background: rgba(16, 185, 129, 0.15); color: var(--good); }
   
-  .btn-upload { background: var(--accent); color: #fff; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 500; transition: 0.2s; }
+  .btn-upload { background: var(--accent); color: #fff; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: 500; transition: 0.2s; }
   .btn-upload:hover { background: var(--accent-hover); }
   .btn-upload:disabled { background: #475569; cursor: not-allowed; }
   
@@ -219,6 +225,7 @@
   </aside>
 
   <main>
+    <!-- ASOSIY SAHIFA -->
     <div id="view-home">
       <div class="header">
         <h1>Asosiy sahifa</h1>
@@ -248,6 +255,7 @@
       </div>
     </div>
 
+    <!-- BO'LIMLAR ICHKI JADVALI -->
     <div id="view-section" class="hidden">
       <div class="header">
         <h1 id="section-title">Bo'lim nomi</h1>
@@ -263,29 +271,28 @@
       </div>
     </div>
 
-        <div id="view-teachers" class="hidden">
+    <!-- O'QITUVCHILAR BO'LIMI -->
+    <div id="view-teachers" class="hidden">
       <div class="header">
         <h1>O'qituvchilar</h1>
       </div>
       
-      <!-- Yangi o'qituvchi qo'shish formasi -->
       <div class="panel" style="margin-bottom: 20px;">
         <h2 style="margin-bottom: 15px; font-size: 18px;">Yangi o'qituvchi qo'shish</h2>
         <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-          <input type="text" id="t-name" placeholder="F.I.Sh. (Masalan: Karimov Bobur)" style="flex: 2; min-width: 200px; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: white;">
-          <select id="t-pos" style="flex: 1; min-width: 150px; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: white;">
+          <input type="text" id="t-name" placeholder="F.I.Sh. (Masalan: Karimov Bobur)" style="flex: 2; min-width: 200px; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: white;">
+          <select id="t-pos" style="flex: 1; min-width: 150px; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: white;">
             <option>Professor</option>
             <option>Dotsent</option>
             <option>Katta o'qituvchi</option>
             <option>O'qituvchi</option>
             <option>Assistent</option>
           </select>
-          <input type="text" id="t-phone" placeholder="Telefon (+998901234567)" style="flex: 1; min-width: 150px; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: white;">
+          <input type="text" id="t-phone" placeholder="Telefon (+998901234567)" style="flex: 1; min-width: 150px; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: white;">
           <button class="btn-upload" onclick="addTeacher()">+ Qo'shish</button>
         </div>
       </div>
 
-      <!-- O'qituvchilar ro'yxati jadvali -->
       <div class="panel">
         <table id="teachers-table">
           <thead>
@@ -303,6 +310,7 @@
       </div>
     </div>
 
+    <!-- HISOBOT BO'LIMI -->
     <div id="view-report" class="hidden">
       <div class="header">
         <h1>Hisobot</h1>
@@ -316,6 +324,7 @@
       </div>
     </div>
 
+    <!-- TELEGRAM XABARLARI -->
     <div id="view-tg" class="hidden">
       <div class="header">
         <h1>Telegram xabarlari</h1>
@@ -374,6 +383,7 @@
     } else if (page === 'teachers') {
       document.getElementById('view-teachers').classList.remove('hidden');
       document.querySelectorAll('.nav-btn')[1].classList.add('active');
+      loadTeachers(); // O'qituvchilarni yuklash
     } else if (page === 'report') {
       document.getElementById('view-report').classList.remove('hidden');
       document.querySelectorAll('.nav-btn')[2].classList.add('active');
@@ -449,7 +459,6 @@
       statusSpan.className = 'status-badge status-good';
       statusSpan.innerHTML = '● Bajarildi (Yuklandi)';
       showToast('Fayl muvaffaqiyatli yuklandi!', 'ok');
-      // Bu yerda faylni serverga yuborish logikasi bo'lishi mumkin
     }
   }
 
@@ -459,7 +468,7 @@
     let sum = 0;
     inputs.forEach(i => sum += Number(i.value) || 0);
     row.querySelector('.total-sum').textContent = sum.toLocaleString();
-    row.querySelector('.total-pct').textContent = (sum / 10000000 * 100).toFixed(1) + '%'; // Misol uchun 10 mln reja
+    row.querySelector('.total-pct').textContent = (sum / 10000000 * 100).toFixed(1) + '%';
   }
 
   function renderChart() {
@@ -499,9 +508,76 @@
     showToast('Excel fayl yuklab olindi!', 'ok');
   }
 
+  // O'qituvchilarni yuklash va ko'rsatish
+  async function loadTeachers() {
+    try {
+      const res = await fetch(API_BASE + "teachers");
+      const data = await res.json();
+      const tbody = document.getElementById('teachers-list');
+      tbody.innerHTML = '';
+      
+      data.forEach(t => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="font-weight:500;">${t.name}</td>
+          <td>${t.position}</td>
+          <td>${t.phone || '-'}</td>
+          <td>
+            ${t.chatId 
+              ? '<span class="status-badge status-good">● Ulangan</span>' 
+              : '<span class="status-badge status-bad">● Ulanmagan</span>'}
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    } catch(e) {
+      console.error(e);
+    }
+  }
+
+  // Yangi o'qituvchi qo'shish
+  async function addTeacher() {
+    const name = document.getElementById('t-name').value.trim();
+    const pos = document.getElementById('t-pos').value;
+    const phone = document.getElementById('t-phone').value.trim();
+
+    if (name.split(' ').length < 2) {
+      showToast("F.I.Sh.ni to'liq kiriting!", "err");
+      return;
+    }
+    
+    let formattedPhone = phone;
+    if (formattedPhone && !formattedPhone.startsWith('+')) {
+      formattedPhone = '+' + formattedPhone;
+    }
+
+    const newTeacher = {
+      id: "t" + Date.now().toString(36),
+      name: name,
+      position: pos,
+      phone: formattedPhone
+    };
+
+    try {
+      await fetch(API_BASE + "teachers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newTeacher)
+      });
+      
+      showToast("O'qituvchi qo'shildi!", "ok");
+      document.getElementById('t-name').value = '';
+      document.getElementById('t-phone').value = '';
+      loadTeachers();
+    } catch(e) {
+      showToast("Xatolik yuz berdi!", "err");
+    }
+  }
+
   window.onload = () => {
     nav('home');
   };
 </script>
 </body>
 </html>
+```
