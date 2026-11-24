@@ -92,7 +92,6 @@
   .btn-back { background: transparent; border: 1px solid var(--border); color: var(--text-main); padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
   .btn-back:hover { background: rgba(255,255,255,0.1); }
 
-  /* Select uslubi */
   .select-teacher { background: rgba(0,0,0,0.3); border: 1px solid var(--border); color: white; padding: 10px 15px; border-radius: 8px; font-size: 15px; outline: none; cursor: pointer; }
   .select-teacher option { background: #1e293b; color: white; }
 
@@ -148,7 +147,6 @@
   </aside>
 
   <main>
-    <!-- ASOSIY SAHIFA -->
     <div id="view-home">
       <div class="header">
         <h1>Asosiy sahifa</h1>
@@ -178,19 +176,17 @@
       </div>
     </div>
 
-    <!-- BO'LIMLAR ICHKI JADVALI -->
     <div id="view-section" class="hidden">
       <div class="header">
         <h1 id="section-title">Bo'lim nomi</h1>
         <button class="btn-back" onclick="nav('home')">← Orqaga</button>
       </div>
       
-      <!-- O'qituvchini tanlash (Tijoratdan tashqari) -->
       <div class="panel" id="teacher-select-panel" style="margin-bottom: 20px;">
         <div style="display: flex; align-items: center; gap: 15px;">
           <label style="font-weight: 600;">O'qituvchini tanlang:</label>
-          <select id="section-teacher-select" class="select-teacher" onchange="renderSectionTable()">
-            <!-- JS orqali to'ldiriladi -->
+          <select id="section-teacher-select" class="select-teacher" onchange="renderSectionTable(currentSection)">
+            <option value="">Yuklanmoqda...</option>
           </select>
         </div>
       </div>
@@ -199,13 +195,10 @@
         <div class="panel-title">
           <h2>Bajariladigan ishlar jadvali</h2>
         </div>
-        <table id="section-table">
-          <!-- Jadval JS orqali to'ldiriladi -->
-        </table>
+        <table id="section-table"></table>
       </div>
     </div>
 
-    <!-- O'QITUVCHILAR BO'LIMI -->
     <div id="view-teachers" class="hidden">
       <div class="header">
         <h1>O'qituvchilar</h1>
@@ -237,14 +230,11 @@
               <th>Telegram holati</th>
             </tr>
           </thead>
-          <tbody id="teachers-list">
-            <!-- JS orqali to'ldiriladi -->
-          </tbody>
+          <tbody id="teachers-list"></tbody>
         </table>
       </div>
     </div>
 
-    <!-- HISOBOT BO'LIMI -->
     <div id="view-report" class="hidden">
       <div class="header">
         <h1>Hisobot</h1>
@@ -258,7 +248,6 @@
       </div>
     </div>
 
-    <!-- TELEGRAM XABARLARI -->
     <div id="view-tg" class="hidden">
       <div class="header">
         <h1>Telegram xabarlari</h1>
@@ -267,7 +256,6 @@
         <p style="color: var(--text-muted);">Bot orqali yuboriladigan ogohlantirishlar va ularning namunalari.</p>
       </div>
     </div>
-
   </main>
 </div>
 
@@ -276,7 +264,7 @@
 <script>
   const API_BASE = "https://kafedra-worker.sanjarturdiboyev3.workers.dev/api/";
   const MONTHS = ["Yanvar", "Fevral", "Mart", "Aprel", "May", "Iyun", "Iyul", "Avgust", "Sentabr", "Oktabr", "Noyabr", "Dekabr"];
-  const REJA_SUMMA = 2500000; // Tijorat uchun umumiy maqsad (2.5 mln)
+  const REJA_SUMMA = 2500000;
 
   let teachersData = [];
   
@@ -318,12 +306,10 @@
       currentSection = sectionId;
       document.getElementById('view-section').classList.remove('hidden');
       
-      // O'qituvchilar ro'yxatini yuklash (agar hali yuklanmagan bo'lsa)
       if (teachersData.length === 0) {
         await loadTeachersData();
       }
       
-      // Tijorat bo'lsa selectni yashirish
       if (sectionId === 'tijorat') {
         document.getElementById('teacher-select-panel').classList.add('hidden');
       } else {
@@ -347,43 +333,32 @@
     }
   }
 
-  // O'qituvchilarni serverdan yuklash
   async function loadTeachersData() {
     try {
       const res = await fetch(API_BASE + "teachers");
       teachersData = await res.json();
-    } catch(e) {
-      console.error("O'qituvchilarni yuklashda xato:", e);
-    }
+    } catch(e) { console.error("O'qituvchilarni yuklashda xato:", e); }
   }
 
-  // O'qituvchilar jadvalini ko'rsatish
   function renderTeachersTable() {
     const tbody = document.getElementById('teachers-list');
     tbody.innerHTML = '';
-    
     if(teachersData.length === 0) {
       tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">Hali o\'qituvchilar kiritilmagan</td></tr>';
       return;
     }
-
     teachersData.forEach(t => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td style="font-weight:500;">${t.name}</td>
         <td>${t.position}</td>
         <td>${t.phone || '-'}</td>
-        <td>
-          ${t.chatId 
-            ? '<span class="status-badge status-good">● Ulangan</span>' 
-            : '<span class="status-badge status-bad">● Ulanmagan</span>'}
-        </td>
+        <td>${t.chatId ? '<span class="status-badge status-good">● Ulangan</span>' : '<span class="status-badge status-bad">● Ulanmagan</span>'}</td>
       `;
       tbody.appendChild(tr);
     });
   }
 
-  // Selectni to'ldirish
   function populateTeacherSelect() {
     const select = document.getElementById('section-teacher-select');
     select.innerHTML = '';
@@ -399,14 +374,12 @@
     });
   }
 
-  function renderSectionTable(secId) {
+  async function renderSectionTable(secId) {
     const sec = SECTIONS[secId];
     document.getElementById('section-title').textContent = sec.title;
     const table = document.getElementById('section-table');
     
-    // TIJORATLASHTIRISH BO'LIMI (12 oylik jadval)
     if (secId === 'tijorat') {
-      // Tijorat uchun ham barcha o'qituvchilarni ko'rsatamiz
       let html = `
         <thead>
           <tr>
@@ -418,15 +391,14 @@
         </thead>
         <tbody>
       `;
-      
       if(teachersData.length === 0) {
          html += `<tr><td colspan="15" style="text-align:center;">O'qituvchilar yo'q</td></tr>`;
       } else {
-        teachersData.forEach((t, index) => {
+        teachersData.forEach((t) => {
           html += `
             <tr id="tijorat-row-${t.id}">
               <td><b>${t.name}</b></td>
-              ${MONTHS.map((m, i) => `<td><input type="number" placeholder="0" oninput="calcTijorat('${t.id}')"></td>`).join('')}
+              ${MONTHS.map(() => `<td><input type="number" placeholder="0" oninput="calcTijorat('${t.id}')"></td>`).join('')}
               <td class="total-sum" style="font-weight: 600; color: var(--accent);">0 so'm</td>
               <td class="total-pct" style="font-weight: 600;">0%</td>
             </tr>
@@ -435,17 +407,36 @@
       }
       html += `</tbody>`;
       table.innerHTML = html;
+      return;
     } 
-    // QOLGAN 4 TA BO'LIM (Tanlangan o'qituvchi uchun)
-    else {
-      const selectedTeacherId = document.getElementById('section-teacher-select').value;
+
+    const selectedTeacherId = document.getElementById('section-teacher-select').value;
+    if (!selectedTeacherId) {
+      table.innerHTML = '<tbody><tr><td style="text-align:center; color:var(--text-muted);">Iltimos, yuqoridan o\'qituvchini tanlang.</td></tr></tbody>';
+      return;
+    }
+
+    table.innerHTML = '<tbody><tr><td colspan="6" style="text-align:center; color:var(--text-muted);">Yuklanmoqda...</td></tr></tbody>';
+
+    try {
+      const res = await fetch(API_BASE + "section_tasks");
+      const allTasks = await res.json();
       
-      if (!selectedTeacherId) {
-        table.innerHTML = '<tbody><tr><td style="text-align:center; color:var(--text-muted);">Iltimos, yuqoridan o\'qituvchini tanlang yoki o\'qituvchi qo\'shing.</td></tr></tbody>';
-        return;
+      let myTasks = allTasks.filter(t => t.teacherId === selectedTeacherId && t.section === secId);
+
+      if (myTasks.length === 0) {
+        myTasks = sec.tasks.map(t => ({ 
+          id: `new-${secId}-${t.id}`, 
+          taskName: t.title, 
+          plan: t.plan, 
+          deadline: t.deadline, 
+          status: 'bajarilmadi',
+          teacherId: selectedTeacherId,
+          section: secId
+        }));
       }
 
-      table.innerHTML = `
+      let html = `
         <thead>
           <tr>
             <th style="width: 50px;">T/r</th>
@@ -457,50 +448,101 @@
           </tr>
         </thead>
         <tbody>
-          ${sec.tasks.map(t => `
-            <tr>
-              <td>${t.id}</td>
-              <td style="font-weight: 500;">${t.title}</td>
-              <td><input type="text" value="${t.plan}" placeholder="Reja..."></td>
-              <td><input type="text" value="${t.deadline}" placeholder="Muddat..."></td>
-              <td>
-                <input type="file" id="file-${secId}-${t.id}-${selectedTeacherId}" style="display:none" onchange="uploadFile(this, '${secId}-${t.id}-${selectedTeacherId}')">
-                <button class="btn-upload" onclick="document.getElementById('file-${secId}-${t.id}-${selectedTeacherId}').click()">Yuklash</button>
-              </td>
-              <td>
-                <span id="status-${secId}-${t.id}-${selectedTeacherId}" class="status-badge status-bad">● Bajarilmadi</span>
-              </td>
-            </tr>
-          `).join('')}
-        </tbody>
       `;
+      
+      myTasks.forEach((t, index) => {
+        html += `
+          <tr>
+            <td>${index + 1}</td>
+            <td style="font-weight: 500;">${t.taskName}</td>
+            <td><input type="text" value="${t.plan || ''}" placeholder="Reja..." onchange="saveTaskPlan('${t.id}', '${t.teacherId}', '${t.section}', '${t.taskName}', this.value, '${t.deadline || ''}')"></td>
+            <td><input type="text" value="${t.deadline || ''}" placeholder="Muddat..." onchange="saveTaskPlan('${t.id}', '${t.teacherId}', '${t.section}', '${t.taskName}', '${t.plan || ''}', this.value)"></td>
+            <td>
+              <input type="file" id="file-${t.id}" style="display:none" onchange="uploadFile(this, '${t.id}', '${t.teacherId}', '${t.section}', '${t.taskName}', '${t.plan || ''}', '${t.deadline || ''}')">
+              <button class="btn-upload" onclick="document.getElementById('file-${t.id}').click()">Yuklash</button>
+            </td>
+            <td>
+              ${t.status === 'bajarildi' 
+                ? '<span class="status-badge status-good">● Bajarildi (Yuklandi)</span>' 
+                : '<span class="status-badge status-bad">● Bajarilmadi</span>'}
+            </td>
+          </tr>
+        `;
+      });
+      
+      html += `</tbody>`;
+      table.innerHTML = html;
+      
+    } catch(e) {
+      console.error(e);
+      table.innerHTML = '<tbody><tr><td colspan="6" style="text-align:center; color:var(--bad);">Xatolik yuz berdi</td></tr></tbody>';
     }
   }
 
-  function uploadFile(input, uniqueId) {
+  async function saveTaskPlan(id, teacherId, section, taskName, plan, deadline) {
+    const data = { 
+      id: id.startsWith('new-') ? "task" + Date.now().toString(36) : id, 
+      teacherId: teacherId, 
+      section: section, 
+      taskName: taskName, 
+      plan: plan, 
+      deadline: deadline, 
+      status: 'bajarilmadi',
+      createdAt: new Date().toISOString()
+    };
+
+    try {
+      await fetch(API_BASE + "section_tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+      showToast("Saqlandi!", "ok");
+      renderSectionTable(section);
+    } catch(e) {
+      showToast("Xatolik yuz berdi!", "err");
+    }
+  }
+
+  async function uploadFile(input, id, teacherId, section, taskName, plan, deadline) {
     if (input.files.length > 0) {
-      const statusSpan = document.getElementById(`status-${uniqueId}`);
-      statusSpan.className = 'status-badge status-good';
-      statusSpan.innerHTML = '● Bajarildi (Yuklandi)';
-      showToast('Fayl muvaffaqiyatli yuklandi!', 'ok');
+      const file = input.files[0];
+      const data = { 
+        id: id.startsWith('new-') ? "task" + Date.now().toString(36) : id, 
+        teacherId: teacherId, 
+        section: section, 
+        taskName: taskName, 
+        plan: plan, 
+        deadline: deadline, 
+        status: 'bajarildi',
+        fileUrl: file.name,
+        createdAt: new Date().toISOString()
+      };
+
+      try {
+        await fetch(API_BASE + "section_tasks", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+        showToast("Fayl yuklandi va Bajarildi deb belgilandi!", "ok");
+        renderSectionTable(section);
+      } catch(e) {
+        showToast("Xatolik yuz berdi!", "err");
+      }
     }
   }
 
-  // Tijorat foizini hisoblash
   function calcTijorat(teacherId) {
     const row = document.getElementById(`tijorat-row-${teacherId}`);
     const inputs = row.querySelectorAll('input[type="number"]');
     let sum = 0;
     inputs.forEach(i => sum += Number(i.value) || 0);
     
-    // Umumiy summani chiqarish
     row.querySelector('.total-sum').textContent = sum.toLocaleString() + " so'm";
-    
-    // Foizni hisoblash (Reja: 2 500 000 so'm)
     let pct = (sum / REJA_SUMMA) * 100;
     row.querySelector('.total-pct').textContent = pct.toFixed(1) + '%';
     
-    // Agar foiz 100 dan oshsa, yashil rang berish
     if(pct >= 100) {
       row.querySelector('.total-pct').style.color = 'var(--good)';
     } else {
@@ -511,7 +553,6 @@
   function renderChart() {
     const ctx = document.getElementById('reportChart').getContext('2d');
     if (chartInstance) chartInstance.destroy();
-    
     chartInstance = new Chart(ctx, {
       type: 'doughnut',
       data: {
