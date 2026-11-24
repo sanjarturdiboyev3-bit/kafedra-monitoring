@@ -213,6 +213,7 @@
             <option>Dotsent</option>
             <option>Katta o'qituvchi</option>
             <option>O'qituvchi</option>
+            <option>Stajor o'qituvchi</option>
             <option>Assistent</option>
           </select>
           <input type="text" id="t-phone" placeholder="Telefon (+998901234567)" style="flex: 1; min-width: 150px; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: white;">
@@ -268,19 +269,60 @@
 
   let teachersData = [];
   
+  // Word fayllardagi barcha bandlar to'liq kiritildi
   const SECTIONS = {
     'oquv': { title: 'I. O\'quv ishlari', tasks: [
-      { id: 1, title: 'O\'quv yuklamasini bajarish (ma\'ruza, amaliy, lab.)', plan: '100%', deadline: 'O\'quv yili davomida' },
-      { id: 2, title: 'Talabalar bilimini baholash va reyting nazorati', plan: '4 marta', deadline: 'Semestr oxirida' }
+      { id: 1, title: 'Ma\'ruza mashg\'ulotlari' },
+      { id: 2, title: 'Amaliy mashg\'ulotlar' },
+      { id: 3, title: 'Laboratoriya mashg\'ulotlari' },
+      { id: 4, title: 'Seminar mashg\'ulotlari' },
+      { id: 5, title: 'Kurs ishiga rahbarlik' },
+      { id: 6, title: 'Kurs ishi himoyasi' },
+      { id: 7, title: 'Oraliq baholash' },
+      { id: 8, title: 'Yakuniy nazoratlarni o\'tkazish va baholash' },
+      { id: 9, title: 'Amaliyotga rahbarlik' },
+      { id: 10, title: 'Bitiruv malakaviy ish (BMI)' },
+      { id: 11, title: 'Magistrlik dissertatsiyasi ishi (MDI)' },
+      { id: 12, title: 'Ilmiy-pedagogik amaliyot (IPA)' },
+      { id: 13, title: 'Doktorantga rahbarlik (DR)' },
+      { id: 14, title: 'Qayta topshirish' }
     ]},
     'uslubiy': { title: 'II. O\'quv-uslubiy ishlar', tasks: [
-      { id: 1, title: 'O\'qitiladigan fanlar bo\'yicha sillabus va o\'quv dasturlarini takomillashtirish', plan: 'Tegishli fanlar bo\'yicha', deadline: 'Avgust' }
+      { id: 1, title: 'O\'qitiladigan fanlar bo\'yicha sillabus va o\'quv dasturlarini takomillashtirish.' },
+      { id: 2, title: 'O\'qitiladigan fanlar bo\'yicha ma\'ruza, seminar va amaliy mashg\'ulotlar uchun o\'quv-uslubiy ishlanmalarni ishlab chiqish.' },
+      { id: 3, title: 'Tegishli fanlar bo\'yicha ta\'lim resurslarini ishlab chiqish, tizimlashtirish va LMS/HEMIS platformalariga joylashtirish.' },
+      { id: 4, title: 'O\'ziga biriktirilgan fan mavzularini HEMIS axborot tizimiga o\'z vaqtida va sifatli kiritish.' },
+      { id: 5, title: 'Fanidan zamonaviy pedagogik va raqamli texnologiyalar asosida video mashg\'ulotlar tayyorlash.' },
+      { id: 6, title: 'O\'quv jarayonida zamonaviy pedagogik yondashuvlar asosida ochiq dars mashg\'ulotlarini tashkil etish va o\'tkazish.' },
+      { id: 7, title: 'Fanidan o\'quv qo\'llanma tayyorlash va nashr etish.' },
+      { id: 8, title: 'Fanlar bo\'yicha ta\'lim natijalarini baholash vositalari bankini yaratish va taqdim etish.' },
+      { id: 9, title: 'Fan topshiriqlarini o\'z vaqtida va to\'liq kiritish, o\'quv jurnalini to\'g\'ri yuritish.' },
+      { id: 10, title: 'O\'tilgan darslarni va talabalar davomatini o\'z vaqtida qayd etish.' },
+      { id: 11, title: 'Talabalar bilimini nazorat qilishda oraliq nazorat natijalarini HEMIS axborot tizimiga kiritish.' },
+      { id: 12, title: 'Universitet tasarrufidagi akademik litsey, texnikum yoki umumta\'lim maktabida mahorat darslarini tashkil etish.' }
     ]},
     'ilmiy': { title: 'III. Ilmiy-tadqiqot va innovatsion faoliyat', tasks: [
-      { id: 1, title: 'Respublika ilmiy jurnallarida maqola chop etish', plan: '2 ta', deadline: 'O\'quv yili davomida' }
+      { id: 1, title: 'Scopus yoki Web of Science bazasida indekslanuvchi jurnal/konferensiya nashrida ilmiy maqola chop etish.' },
+      { id: 2, title: 'Respublika ilmiy jurnallarida (OAK ro\'yxatidagi) kafedra ilmiy yo\'nalishiga mos maqola chop etish.' },
+      { id: 3, title: 'Xalqaro impakt-faktorli (impakt-faktori 3 dan yuqori) jurnallarda ilmiy maqola nashr etish.' },
+      { id: 4, title: 'Xalqaro ilmiy-amaliy konferensiyalarda tezis/maqola chop etish.' },
+      { id: 5, title: 'Respublika ilmiy-amaliy konferensiyalarida tezis/maqola chop etish.' },
+      { id: 6, title: 'Joriy o\'quv yilida ilmiy mavzusiga mos monografiya tayyorlash va nashr etish.' },
+      { id: 7, title: 'Ta\'lim yoki ilmiy faoliyatga oid dasturlar yoki raqamli ma\'lumotlar bazalari yaratish va mualliflik huquqi (guvohnoma) olish.' },
+      { id: 8, title: 'Respublika yoki xalqaro ilmiy/innovatsion loyihalarda ishtirok etish yoki rahbarlik qilish.' },
+      { id: 9, title: 'Tadqiqot ishiga rasmiy opponent bo\'lish, dissertasiya va avtoreferatga taqriz berish, Ilmiy kengash a\'zosi bo\'lish.' },
+      { id: 10, title: 'Talabalarning ilmiy-tadqiqot ishlariga rahbarlik qilish va nashr ettirish.' },
+      { id: 11, title: 'Kafedra miqyosida ilmiy-uslubiy seminar, davra suhbati yoki konferensiya sho\'basini tashkil etishda faol ishtirok etish.' }
     ]},
     'manaviy': { title: 'IV. "Ustoz-shogird" ma\'naviy-ma\'rifiy va kasbiy yo\'naltirish ishlari', tasks: [
-      { id: 1, title: 'To\'garak faoliyatiga rahbarlik qilish va talabalarni jalb etish', plan: '2 semestr', deadline: 'O\'quv yili davomida' }
+      { id: 1, title: 'To\'garak faoliyatiga rahbarlik qilish; mavzular rejasini ishlab chiqish va talabalarni muntazam jalb etish.' },
+      { id: 2, title: 'Talabalar bilan ta\'lim jarayoniga moslashuv, fanlarni o\'zlashtirish bo\'yicha uchrashuvlar o\'tkazish.' },
+      { id: 3, title: 'O\'zlashtirishda qiyinchilikka duch kelayotgan talabalar uchun individual maslahat va qo\'llab-quvvatlash jadvalini yuritish.' },
+      { id: 4, title: 'Iqtidorli talabalarni stipendiya, olimpiada, ilmiy tanlov va konferensiyalarga tayyorlashga ko\'maklashish.' },
+      { id: 5, title: 'Talabalar bandligi va kasbiy yo\'naltirishiga ko\'maklashish: ish beruvchi yoki soha mutaxassisi bilan uchrashuv tashkil etish.' },
+      { id: 6, title: 'Yoshlarga oid, ma\'naviy-ma\'rifiy va fuqarolik mas\'uliyatini rivojlantiruvchi tadbirlarni tashkil etishda shaxsiy tashabbus ko\'rsatish.' },
+      { id: 7, title: 'Universitet va oliy maktab miqyosidagi sport, intellektual, ijodiy tadbirlarda ishtirok etish.' },
+      { id: 8, title: 'Jamiyatdagi islohotlar, media va axborot madaniyati mavzularida OAV chiqishini amalga oshirish.' }
     ]},
     'tijorat': { title: 'V. Tijoratlashtirish', tasks: [] }
   };
@@ -428,8 +470,8 @@
         myTasks = sec.tasks.map(t => ({ 
           id: `new-${secId}-${t.id}`, 
           taskName: t.title, 
-          plan: t.plan, 
-          deadline: t.deadline, 
+          plan: '', // Bo'sh qoldiriladi
+          deadline: '', // Bo'sh qoldiriladi
           status: 'bajarilmadi',
           teacherId: selectedTeacherId,
           section: secId
