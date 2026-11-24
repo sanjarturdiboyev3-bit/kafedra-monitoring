@@ -86,8 +86,8 @@
   .section-card h3 { font-size: 18px; margin-bottom: 10px; color: var(--text-main); }
   .section-card p { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
   
-  .panel { background: var(--bg-card); backdrop-filter: blur(12px); border: 1px solid var(--border); border-radius: 20px; padding: 24px; margin-bottom: 24px; overflow-x: auto; }
-  .panel-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;}
+  .panel { background: var(--bg-card); backdrop-filter: blur(12px); border: 1px solid var(--border); border-radius: 20px; padding: 20px; margin-bottom: 24px; overflow: hidden; }
+  .panel-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;}
   .panel-title h2 { font-family: var(--font-title); font-size: 20px; }
   .btn-back { background: transparent; border: 1px solid var(--border); color: var(--text-main); padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
   .btn-back:hover { background: rgba(255,255,255,0.1); }
@@ -95,17 +95,20 @@
   .select-teacher { background: rgba(0,0,0,0.3); border: 1px solid var(--border); color: white; padding: 10px 15px; border-radius: 8px; font-size: 15px; outline: none; cursor: pointer; }
   .select-teacher option { background: #1e293b; color: white; }
 
-  table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 800px; }
-  th, td { padding: 16px; text-align: left; border-bottom: 1px solid var(--border); }
-  th { background: rgba(255,255,255,0.02); font-weight: 600; color: var(--text-muted); font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
-  td input, td select { background: transparent; border: 1px solid transparent; color: var(--text-main); padding: 8px; border-radius: 6px; width: 100%; font-family: var(--font); font-size: 14px; transition: 0.2s; }
+  /* Tijorat uchun ixcham jadval */
+  .table-responsive { width: 100%; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 1000px; }
+  th, td { padding: 10px 8px; text-align: left; border-bottom: 1px solid var(--border); }
+  th { background: rgba(255,255,255,0.02); font-weight: 600; color: var(--text-muted); font-size: 11px; text-transform: uppercase; white-space: nowrap; }
+  
+  td input, td select { background: transparent; border: 1px solid transparent; color: var(--text-main); padding: 5px; border-radius: 4px; width: 100%; font-family: var(--font); font-size: 13px; transition: 0.2s; text-align: center; }
   td input:hover, td input:focus, td select:hover, td select:focus { border-color: var(--border); background: rgba(0,0,0,0.2); outline: none; }
   
-  .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+  .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
   .status-bad { background: rgba(239, 68, 68, 0.15); color: var(--bad); }
   .status-good { background: rgba(16, 185, 129, 0.15); color: var(--good); }
   
-  .btn-upload { background: var(--accent); color: #fff; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: 500; transition: 0.2s; white-space: nowrap; }
+  .btn-upload { background: var(--accent); color: #fff; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: 500; transition: 0.2s; white-space: nowrap; font-size: 12px;}
   .btn-upload:hover { background: var(--accent-hover); }
   .btn-upload:disabled { background: #475569; cursor: not-allowed; }
   
@@ -179,7 +182,10 @@
     <div id="view-section" class="hidden">
       <div class="header">
         <h1 id="section-title">Bo'lim nomi</h1>
-        <button class="btn-back" onclick="nav('home')">← Orqaga</button>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn-upload hidden" id="btn-export-excel" onclick="exportTijoratExcel()">📥 Excel yuklab olish</button>
+          <button class="btn-back" onclick="nav('home')">← Orqaga</button>
+        </div>
       </div>
       
       <div class="panel" id="teacher-select-panel" style="margin-bottom: 20px;">
@@ -195,7 +201,9 @@
         <div class="panel-title">
           <h2>Bajariladigan ishlar jadvali</h2>
         </div>
-        <table id="section-table"></table>
+        <div class="table-responsive">
+          <table id="section-table"></table>
+        </div>
       </div>
     </div>
 
@@ -222,24 +230,26 @@
       </div>
 
       <div class="panel">
-        <table id="teachers-table">
-          <thead>
-            <tr>
-              <th>F.I.Sh.</th>
-              <th>Lavozimi</th>
-              <th>Telefon</th>
-              <th>Telegram holati</th>
-            </tr>
-          </thead>
-          <tbody id="teachers-list"></tbody>
-        </table>
+        <div class="table-responsive">
+          <table id="teachers-table">
+            <thead>
+              <tr>
+                <th>F.I.Sh.</th>
+                <th>Lavozimi</th>
+                <th>Telefon</th>
+                <th>Telegram holati</th>
+              </tr>
+            </thead>
+            <tbody id="teachers-list"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
     <div id="view-report" class="hidden">
       <div class="header">
         <h1>Hisobot</h1>
-        <button class="btn-upload" onclick="downloadExcel()">📥 Excel yuklab olish</button>
+        <button class="btn-upload" onclick="downloadExcel()">📥 Umumiy Excel yuklab olish</button>
       </div>
       <div class="panel">
         <h2 style="margin-bottom: 20px;">Umumiy holat diagrammasi</h2>
@@ -265,27 +275,20 @@
 <script>
   const API_BASE = "https://kafedra-worker.sanjarturdiboyev3.workers.dev/api/";
   const MONTHS = ["Yanvar", "Fevral", "Mart", "Aprel", "May", "Iyun", "Iyul", "Avgust", "Sentabr", "Oktabr", "Noyabr", "Dekabr"];
-  const REJA_SUMMA = 2500000;
+  const REJA_SUMMA = 2500000; // Tijorat uchun umumiy maqsad
 
   let teachersData = [];
+  let currentTijoratData = {}; // Tijorat ma'lumotlarini saqlash uchun
   
-  // Word fayllardagi barcha bandlar to'liq kiritildi
   const SECTIONS = {
     'oquv': { title: 'I. O\'quv ishlari', tasks: [
-      { id: 1, title: 'Ma\'ruza mashg\'ulotlari' },
-      { id: 2, title: 'Amaliy mashg\'ulotlar' },
-      { id: 3, title: 'Laboratoriya mashg\'ulotlari' },
-      { id: 4, title: 'Seminar mashg\'ulotlari' },
-      { id: 5, title: 'Kurs ishiga rahbarlik' },
-      { id: 6, title: 'Kurs ishi himoyasi' },
-      { id: 7, title: 'Oraliq baholash' },
-      { id: 8, title: 'Yakuniy nazoratlarni o\'tkazish va baholash' },
-      { id: 9, title: 'Amaliyotga rahbarlik' },
-      { id: 10, title: 'Bitiruv malakaviy ish (BMI)' },
-      { id: 11, title: 'Magistrlik dissertatsiyasi ishi (MDI)' },
-      { id: 12, title: 'Ilmiy-pedagogik amaliyot (IPA)' },
-      { id: 13, title: 'Doktorantga rahbarlik (DR)' },
-      { id: 14, title: 'Qayta topshirish' }
+      { id: 1, title: 'Ma\'ruza mashg\'ulotlari' }, { id: 2, title: 'Amaliy mashg\'ulotlar' },
+      { id: 3, title: 'Laboratoriya mashg\'ulotlari' }, { id: 4, title: 'Seminar mashg\'ulotlari' },
+      { id: 5, title: 'Kurs ishiga rahbarlik' }, { id: 6, title: 'Kurs ishi himoyasi' },
+      { id: 7, title: 'Oraliq baholash' }, { id: 8, title: 'Yakuniy nazoratlarni o\'tkazish va baholash' },
+      { id: 9, title: 'Amaliyotga rahbarlik' }, { id: 10, title: 'Bitiruv malakaviy ish (BMI)' },
+      { id: 11, title: 'Magistrlik dissertatsiyasi ishi (MDI)' }, { id: 12, title: 'Ilmiy-pedagogik amaliyot (IPA)' },
+      { id: 13, title: 'Doktorantga rahbarlik (DR)' }, { id: 14, title: 'Qayta topshirish' }
     ]},
     'uslubiy': { title: 'II. O\'quv-uslubiy ishlar', tasks: [
       { id: 1, title: 'O\'qitiladigan fanlar bo\'yicha sillabus va o\'quv dasturlarini takomillashtirish.' },
@@ -341,6 +344,9 @@
     document.querySelectorAll('main > div').forEach(d => d.classList.add('hidden'));
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     
+    // Excel tugmasini yashirish (agar boshqa bo'limga o'tsak)
+    document.getElementById('btn-export-excel').classList.add('hidden');
+
     if (page === 'home') {
       document.getElementById('view-home').classList.remove('hidden');
       document.querySelectorAll('.nav-btn')[0].classList.add('active');
@@ -348,12 +354,11 @@
       currentSection = sectionId;
       document.getElementById('view-section').classList.remove('hidden');
       
-      if (teachersData.length === 0) {
-        await loadTeachersData();
-      }
+      if (teachersData.length === 0) await loadTeachersData();
       
       if (sectionId === 'tijorat') {
         document.getElementById('teacher-select-panel').classList.add('hidden');
+        document.getElementById('btn-export-excel').classList.remove('hidden'); // Tijoratda Excel tugmasini ko'rsatamiz
       } else {
         document.getElementById('teacher-select-panel').classList.remove('hidden');
         populateTeacherSelect();
@@ -379,7 +384,7 @@
     try {
       const res = await fetch(API_BASE + "teachers");
       teachersData = await res.json();
-    } catch(e) { console.error("O'qituvchilarni yuklashda xato:", e); }
+    } catch(e) { console.error(e); }
   }
 
   function renderTeachersTable() {
@@ -422,27 +427,53 @@
     const table = document.getElementById('section-table');
     
     if (secId === 'tijorat') {
+      table.innerHTML = '<tbody><tr><td colspan="15" style="text-align:center; color:var(--text-muted);">Yuklanmoqda...</td></tr></tbody>';
+      
+      currentTijoratData = {}; // Tozalaymiz
+      try {
+        const res = await fetch(API_BASE + "commercial_payments");
+        const data = await res.json();
+        data.forEach(item => {
+          currentTijoratData[item.teacherId] = {
+            months: JSON.parse(item.monthlyData || '{}'),
+            total: item.totalSum
+          };
+        });
+      } catch(e) { console.error(e); }
+
       let html = `
         <thead>
           <tr>
-            <th style="min-width: 200px;">O'qituvchi F.I.Sh.</th>
-            ${MONTHS.map(m => `<th style="min-width: 80px;">${m}</th>`).join('')}
-            <th style="min-width: 120px;">Umumiy summa</th>
-            <th style="min-width: 100px;">Foiz (%)</th>
+            <th style="text-align:left; min-width: 150px;">O'qituvchi F.I.Sh.</th>
+            ${MONTHS.map(m => `<th>${m.substring(0,3)}</th>`).join('')}
+            <th style="color:var(--accent); min-width: 100px;">Umumiy</th>
+            <th style="color:var(--good); min-width: 70px;">Foiz</th>
           </tr>
         </thead>
         <tbody>
       `;
+      
       if(teachersData.length === 0) {
          html += `<tr><td colspan="15" style="text-align:center;">O'qituvchilar yo'q</td></tr>`;
       } else {
         teachersData.forEach((t) => {
+          const tData = currentTijoratData[t.id] || { months: {}, total: 0 };
+          let inputHtml = '';
+          
+          MONTHS.forEach(m => {
+            const val = tData.months[m] || '';
+            inputHtml += `<td><input type="number" value="${val}" placeholder="0" onchange="calcTijorat('${t.id}', this)"></td>`;
+          });
+
+          let pct = (tData.total / REJA_SUMMA) * 100;
+          let pctColor = pct >= 100 ? 'var(--good)' : 'var(--text-main)';
+
           html += `
             <tr id="tijorat-row-${t.id}">
-              <td><b>${t.name}</b></td>
-              ${MONTHS.map(() => `<td><input type="number" placeholder="0" oninput="calcTijorat('${t.id}')"></td>`).join('')}
-              <td class="total-sum" style="font-weight: 600; color: var(--accent);">0 so'm</td>
-              <td class="total-pct" style="font-weight: 600;">0%</td>
+              <td style="text-align:left; font-weight:500;">${t.name}</td>
+              ${inputHtml}
+              <td class="total-sum" style="font-weight: 600; color: var(--accent); text-align:center;">${tData.total.toLocaleString()}</td>
+              <td class="total-pct" style="font-weight: 600; color: ${pctColor}; text-align:center;">${pct.toFixed(1)}%</td>
             </tr>
           `;
         });
@@ -468,25 +499,19 @@
 
       if (myTasks.length === 0) {
         myTasks = sec.tasks.map(t => ({ 
-          id: `new-${secId}-${t.id}`, 
-          taskName: t.title, 
-          plan: '', // Bo'sh qoldiriladi
-          deadline: '', // Bo'sh qoldiriladi
-          status: 'bajarilmadi',
-          teacherId: selectedTeacherId,
-          section: secId
+          id: `new-${secId}-${t.id}`, taskName: t.title, plan: '', deadline: '', status: 'bajarilmadi', teacherId: selectedTeacherId, section: secId
         }));
       }
 
       let html = `
         <thead>
           <tr>
-            <th style="width: 50px;">T/r</th>
+            <th style="width: 40px;">T/r</th>
             <th>Aniq rejalashtirilgan ish va yakuniy natija</th>
-            <th>Reja</th>
-            <th>Muddat</th>
-            <th>Tasdiqlovchi dalil</th>
-            <th>Amalda / holati</th>
+            <th style="width: 150px;">Reja</th>
+            <th style="width: 150px;">Muddat</th>
+            <th style="width: 100px;">Dalil</th>
+            <th style="width: 120px;">Holat</th>
           </tr>
         </thead>
         <tbody>
@@ -505,7 +530,7 @@
             </td>
             <td>
               ${t.status === 'bajarildi' 
-                ? '<span class="status-badge status-good">● Bajarildi (Yuklandi)</span>' 
+                ? '<span class="status-badge status-good">● Bajarildi</span>' 
                 : '<span class="status-badge status-bad">● Bajarilmadi</span>'}
             </td>
           </tr>
@@ -524,26 +549,15 @@
   async function saveTaskPlan(id, teacherId, section, taskName, plan, deadline) {
     const data = { 
       id: id.startsWith('new-') ? "task" + Date.now().toString(36) : id, 
-      teacherId: teacherId, 
-      section: section, 
-      taskName: taskName, 
-      plan: plan, 
-      deadline: deadline, 
-      status: 'bajarilmadi',
-      createdAt: new Date().toISOString()
+      teacherId: teacherId, section: section, taskName: taskName, plan: plan, deadline: deadline, status: 'bajarilmadi', createdAt: new Date().toISOString()
     };
-
     try {
       await fetch(API_BASE + "section_tasks", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data)
       });
       showToast("Saqlandi!", "ok");
       renderSectionTable(section);
-    } catch(e) {
-      showToast("Xatolik yuz berdi!", "err");
-    }
+    } catch(e) { showToast("Xatolik yuz berdi!", "err"); }
   }
 
   async function uploadFile(input, id, teacherId, section, taskName, plan, deadline) {
@@ -551,45 +565,69 @@
       const file = input.files[0];
       const data = { 
         id: id.startsWith('new-') ? "task" + Date.now().toString(36) : id, 
-        teacherId: teacherId, 
-        section: section, 
-        taskName: taskName, 
-        plan: plan, 
-        deadline: deadline, 
-        status: 'bajarildi',
-        fileUrl: file.name,
-        createdAt: new Date().toISOString()
+        teacherId: teacherId, section: section, taskName: taskName, plan: plan, deadline: deadline, status: 'bajarildi', fileUrl: file.name, createdAt: new Date().toISOString()
       };
-
       try {
         await fetch(API_BASE + "section_tasks", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data)
+          method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data)
         });
         showToast("Fayl yuklandi va Bajarildi deb belgilandi!", "ok");
         renderSectionTable(section);
-      } catch(e) {
-        showToast("Xatolik yuz berdi!", "err");
-      }
+      } catch(e) { showToast("Xatolik yuz berdi!", "err"); }
     }
   }
 
-  function calcTijorat(teacherId) {
+  async function calcTijorat(teacherId, inputElement) {
     const row = document.getElementById(`tijorat-row-${teacherId}`);
     const inputs = row.querySelectorAll('input[type="number"]');
     let sum = 0;
-    inputs.forEach(i => sum += Number(i.value) || 0);
+    let monthlyData = {};
+
+    inputs.forEach((i, index) => {
+      const val = Number(i.value) || 0;
+      sum += val;
+      monthlyData[MONTHS[index]] = val;
+    });
     
-    row.querySelector('.total-sum').textContent = sum.toLocaleString() + " so'm";
+    row.querySelector('.total-sum').textContent = sum.toLocaleString();
+    
     let pct = (sum / REJA_SUMMA) * 100;
     row.querySelector('.total-pct').textContent = pct.toFixed(1) + '%';
+    row.querySelector('.total-pct').style.color = pct >= 100 ? 'var(--good)' : 'var(--text-main)';
+
+    // Bazaga saqlash
+    try {
+      await fetch(API_BASE + "commercial_payments", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: "com-" + teacherId, teacherId: teacherId, monthlyData: JSON.stringify(monthlyData), totalSum: sum, updatedAt: new Date().toISOString() })
+      });
+    } catch(e) { console.error("Saqlashda xato:", e); }
+  }
+
+  function exportTijoratExcel() {
+    if (teachersData.length === 0) { showToast("Ma'lumot yo'q", "err"); return; }
     
-    if(pct >= 100) {
-      row.querySelector('.total-pct').style.color = 'var(--good)';
-    } else {
-      row.querySelector('.total-pct').style.color = 'var(--text-main)';
-    }
+    let excelData = [];
+    // Sarlavha qatori
+    excelData.push(["O'qituvchi F.I.Sh.", ...MONTHS, "Umumiy summa", "Foiz (%)"]);
+
+    // Ma'lumotlar
+    teachersData.forEach(t => {
+      const tData = currentTijoratData[t.id] || { months: {}, total: 0 };
+      let row = [t.name];
+      MONTHS.forEach(m => row.push(tData.months[m] || 0));
+      let pct = (tData.total / REJA_SUMMA) * 100;
+      row.push(tData.total);
+      row.push(pct.toFixed(1) + "%");
+      excelData.push(row);
+    });
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(excelData);
+    ws['!cols'] = [{wch: 30}, ...MONTHS.map(()=> ({wch: 10})), {wch: 15}, {wch: 10}];
+    XLSX.utils.book_append_sheet(wb, ws, "Tijorat");
+    XLSX.writeFile(wb, "Tijoratlashtirish_Hisoboti.xlsx");
+    showToast('Excel yuklab olindi!', 'ok');
   }
 
   function renderChart() {
@@ -597,28 +635,18 @@
     if (chartInstance) chartInstance.destroy();
     chartInstance = new Chart(ctx, {
       type: 'doughnut',
-      data: {
-        labels: ['Bajarildi', 'Jarayonda', 'Bajarilmadi'],
-        datasets: [{
-          data: [45, 30, 25],
-          backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
-          borderWidth: 0
-        }]
-      },
+      data: { labels: ['Bajarildi', 'Jarayonda', 'Bajarilmadi'], datasets: [{ data: [45, 30, 25], backgroundColor: ['#10b981', '#f59e0b', '#ef4444'], borderWidth: 0 }] },
       options: { cutout: '75%', plugins: { legend: { position: 'bottom', labels: { color: '#f8fafc' } } } }
     });
   }
 
   function downloadExcel() {
-    const data = [
-      ["Bo'lim", "Ish nomi", "Reja", "Muddat", "Holat"],
-      ["O'quv ishlari", "Dars yuklamasi", "100%", "Dekabr", "Bajarildi"]
-    ];
+    const data = [ ["Bo'lim", "Ish nomi", "Reja", "Muddat", "Holat"], ["O'quv ishlari", "Dars yuklamasi", "100%", "Dekabr", "Bajarildi"] ];
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.aoa_to_sheet(data);
-    XLSX.utils.book_append_sheet(wb, ws, "Hisobot");
+    XLSX.utils.book_append_sheet(wb, ws, "Umumiy");
     XLSX.writeFile(wb, "Kafedra_Hisoboti.xlsx");
-    showToast('Excel fayl yuklab olindi!', 'ok');
+    showToast('Excel yuklab olindi!', 'ok');
   }
 
   async function addTeacher() {
@@ -627,7 +655,6 @@
     const phone = document.getElementById('t-phone').value.trim();
 
     if (name.split(' ').length < 2) { showToast("F.I.Sh.ni to'liq kiriting!", "err"); return; }
-    
     let formattedPhone = phone;
     if (formattedPhone && !formattedPhone.startsWith('+')) formattedPhone = '+' + formattedPhone;
 
@@ -635,9 +662,7 @@
 
     try {
       await fetch(API_BASE + "teachers", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newTeacher)
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(newTeacher)
       });
       showToast("O'qituvchi qo'shildi!", "ok");
       document.getElementById('t-name').value = '';
