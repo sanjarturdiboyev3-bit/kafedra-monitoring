@@ -95,7 +95,6 @@
   .select-teacher { background: rgba(0,0,0,0.3); border: 1px solid var(--border); color: white; padding: 10px 15px; border-radius: 8px; font-size: 15px; outline: none; cursor: pointer; }
   .select-teacher option { background: #1e293b; color: white; }
 
-  /* Tijorat uchun ixcham jadval */
   .table-responsive { width: 100%; overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 1000px; }
   th, td { padding: 10px 8px; text-align: left; border-bottom: 1px solid var(--border); }
@@ -278,7 +277,7 @@
   const REJA_SUMMA = 2500000; // Tijorat uchun umumiy maqsad
 
   let teachersData = [];
-  let currentTijoratData = {}; // Tijorat ma'lumotlarini saqlash uchun
+  let currentTijoratData = {}; 
   
   const SECTIONS = {
     'oquv': { title: 'I. O\'quv ishlari', tasks: [
@@ -344,7 +343,6 @@
     document.querySelectorAll('main > div').forEach(d => d.classList.add('hidden'));
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     
-    // Excel tugmasini yashirish (agar boshqa bo'limga o'tsak)
     document.getElementById('btn-export-excel').classList.add('hidden');
 
     if (page === 'home') {
@@ -358,7 +356,7 @@
       
       if (sectionId === 'tijorat') {
         document.getElementById('teacher-select-panel').classList.add('hidden');
-        document.getElementById('btn-export-excel').classList.remove('hidden'); // Tijoratda Excel tugmasini ko'rsatamiz
+        document.getElementById('btn-export-excel').classList.remove('hidden');
       } else {
         document.getElementById('teacher-select-panel').classList.remove('hidden');
         populateTeacherSelect();
@@ -429,7 +427,7 @@
     if (secId === 'tijorat') {
       table.innerHTML = '<tbody><tr><td colspan="15" style="text-align:center; color:var(--text-muted);">Yuklanmoqda...</td></tr></tbody>';
       
-      currentTijoratData = {}; // Tozalaymiz
+      currentTijoratData = {}; 
       try {
         const res = await fetch(API_BASE + "commercial_payments");
         const data = await res.json();
@@ -590,30 +588,42 @@
     });
     
     row.querySelector('.total-sum').textContent = sum.toLocaleString();
-    
     let pct = (sum / REJA_SUMMA) * 100;
     row.querySelector('.total-pct').textContent = pct.toFixed(1) + '%';
     row.querySelector('.total-pct').style.color = pct >= 100 ? 'var(--good)' : 'var(--text-main)';
 
-    // Bazaga saqlash
     try {
       await fetch(API_BASE + "commercial_payments", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: "com-" + teacherId, teacherId: teacherId, monthlyData: JSON.stringify(monthlyData), totalSum: sum, updatedAt: new Date().toISOString() })
       });
-    } catch(e) { console.error("Saqlashda xato:", e); }
+      if (!currentTijoratData[teacherId]) currentTijoratData[teacherId] = { months: {}, total: 0 };
+      currentTijoratData[teacherId].months = monthlyData;
+      currentTijoratData[teacherId].total = sum;
+    } catch(e) { showToast("Saqlashda xatolik!", "err"); }
   }
 
-  function exportTijoratExcel() {
+  async function exportTijoratExcel() {
     if (teachersData.length === 0) { showToast("Ma'lumot yo'q", "err"); return; }
     
+    showToast("Excel tayyorlanmoqda...", "ok");
     let excelData = [];
-    // Sarlavha qatori
     excelData.push(["O'qituvchi F.I.Sh.", ...MONTHS, "Umumiy summa", "Foiz (%)"]);
 
-    // Ma'lumotlar
+    let latestData = {};
+    try {
+      const res = await fetch(API_BASE + "commercial_payments");
+      const data = await res.json();
+      data.forEach(item => {
+        latestData[item.teacherId] = {
+          months: JSON.parse(item.monthlyData || '{}'),
+          total: item.totalSum
+        };
+      });
+    } catch(e) { console.error(e); }
+
     teachersData.forEach(t => {
-      const tData = currentTijoratData[t.id] || { months: {}, total: 0 };
+      const tData = latestData[t.id] || { months: {}, total: 0 };
       let row = [t.name];
       MONTHS.forEach(m => row.push(tData.months[m] || 0));
       let pct = (tData.total / REJA_SUMMA) * 100;
