@@ -35,7 +35,7 @@
     min-height: 100vh;
   }
 
-  /* LOGIN OYNASI UCHUN */
+  /* LOGIN OYNASI */
   #login-screen {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: #0f172a; display: flex; justify-content: center; align-items: center;
@@ -177,8 +177,8 @@
     <div class="login-error" id="login-error">Parol xato!</div>
     
     <select id="login-role">
-      <option value="admin">Admin (To'liq huquq)</option>
-      <option value="mudir">Mudir (Faqat hisobotlar)</option>
+      <option value="admin">Admin</option>
+      <option value="mudir">Mudir</option>
     </select>
 
     <input type="password" id="login-pass" placeholder="Parolni kiriting">
@@ -505,22 +505,18 @@
       return;
     }
 
-    // Tizimga kirish
     errorDiv.style.display = 'none';
     document.getElementById('login-screen').classList.add('hidden');
     document.getElementById('main-app').classList.remove('hidden');
     
-    // Rollarni sozlash
     document.getElementById('current-role-text').textContent = currentUserRole === 'admin' ? 'Admin' : 'Mudir';
     
     if (currentUserRole === 'mudir') {
-      // Mudir uchun faqat Hisobotni qoldirish
       document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
       document.getElementById('nav-home').classList.add('hidden');
       document.getElementById('nav-report').classList.remove('hidden');
-      nav('report'); // To'g'ridan-to'g'ri hisobotga o'tish
+      nav('report');
     } else {
-      // Admin uchun hammasini ko'rsatish
       document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
       document.getElementById('nav-home').classList.remove('hidden');
       nav('home');
