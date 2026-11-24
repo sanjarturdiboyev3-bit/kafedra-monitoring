@@ -39,146 +39,74 @@
       radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.08), transparent 25%);
   }
 
-  /* Orqa fondagi harakatlanuvchi animatsiya */
-  .bg-animation {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    z-index: -1;
-    overflow: hidden;
-  }
-  .bg-circle {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(80px);
-    opacity: 0.4;
-    animation: float 20s infinite alternate ease-in-out;
-  }
+  .bg-animation { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden; }
+  .bg-circle { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.4; animation: float 20s infinite alternate ease-in-out; }
   .bg-circle.c1 { width: 400px; height: 400px; background: #3b82f6; top: -100px; left: -100px; }
   .bg-circle.c2 { width: 300px; height: 300px; background: #8b5cf6; bottom: -50px; right: -50px; animation-delay: -5s; }
   .bg-circle.c3 { width: 250px; height: 250px; background: #10b981; top: 40%; left: 60%; animation-delay: -10s; }
-  
-  @keyframes float {
-    0% { transform: translate(0, 0) scale(1); }
-    100% { transform: translate(50px, 50px) scale(1.2); }
-  }
+  @keyframes float { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(50px, 50px) scale(1.2); } }
 
   .shell { display: flex; min-height: 100vh; }
   
-  /* Yon panel */
   aside {
-    width: 260px;
-    background: var(--bg-side);
-    border-right: 1px solid var(--border);
-    padding: 24px 16px;
-    display: flex;
-    flex-direction: column;
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    z-index: 10;
+    width: 260px; background: var(--bg-side); border-right: 1px solid var(--border);
+    padding: 24px 16px; display: flex; flex-direction: column;
+    position: sticky; top: 0; height: 100vh; z-index: 10;
   }
   
-  .logo-area {
-    text-align: center;
-    margin-bottom: 30px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid var(--border);
-  }
-  .logo-icon {
-    font-size: 40px;
-    margin-bottom: 10px;
-    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
+  .logo-area { text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+  .logo-icon { font-size: 40px; margin-bottom: 10px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
   .logo-text { font-family: var(--font-title); font-weight: 700; font-size: 18px; letter-spacing: 1px; }
   .logo-sub { font-size: 11px; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; margin-top: 4px;}
   
   .nav-btn {
-    display: flex; align-items: center; gap: 12px;
-    width: 100%; padding: 14px 16px;
+    display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px 16px;
     background: transparent; border: none; border-radius: 12px;
     color: var(--text-muted); font-size: 15px; font-weight: 500;
-    cursor: pointer; transition: all 0.2s;
-    text-align: left;
+    cursor: pointer; transition: all 0.2s; text-align: left;
   }
   .nav-btn:hover { background: rgba(255,255,255,0.05); color: var(--text-main); }
   .nav-btn.active { background: linear-gradient(90deg, rgba(59, 130, 246, 0.15), transparent); border-left: 3px solid var(--accent); color: var(--accent); }
 
-  /* Asosiy qism */
-  main {
-    flex: 1;
-    padding: 32px 40px;
-    max-width: 1400px;
-    margin: 0 auto;
-  }
+  main { flex: 1; padding: 32px 40px; max-width: 1400px; margin: 0 auto; overflow-x: hidden; }
 
-  .header {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 32px;
-  }
+  .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; flex-wrap: wrap; gap: 15px; }
   .header h1 { font-family: var(--font-title); font-size: 28px; font-weight: 700; }
   .header .badge { background: rgba(16, 185, 129, 0.2); color: var(--good); padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; }
 
-  /* Asosiy sahifadagi 5 ta karta */
-  .grid-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 20px;
-    margin-bottom: 40px;
-  }
+  .grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 40px; }
   .section-card {
-    background: var(--bg-card);
-    backdrop-filter: blur(12px);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 24px;
-    cursor: pointer;
-    transition: all 0.3s;
-    position: relative;
-    overflow: hidden;
+    background: var(--bg-card); backdrop-filter: blur(12px); border: 1px solid var(--border);
+    border-radius: 20px; padding: 24px; cursor: pointer; transition: all 0.3s;
+    position: relative; overflow: hidden;
   }
-  .section-card:hover {
-    transform: translateY(-5px);
-    border-color: rgba(59, 130, 246, 0.5);
-    box-shadow: 0 10px 30px -10px rgba(59, 130, 246, 0.3);
-  }
-  .section-card::before {
-    content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px;
-    background: linear-gradient(90deg, var(--accent), #8b5cf6);
-    opacity: 0; transition: opacity 0.3s;
-  }
+  .section-card:hover { transform: translateY(-5px); border-color: rgba(59, 130, 246, 0.5); box-shadow: 0 10px 30px -10px rgba(59, 130, 246, 0.3); }
+  .section-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, var(--accent), #8b5cf6); opacity: 0; transition: opacity 0.3s; }
   .section-card:hover::before { opacity: 1; }
   .section-card h3 { font-size: 18px; margin-bottom: 10px; color: var(--text-main); }
   .section-card p { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
   
-  /* Bo'lim ichidagi jadval */
-  .panel {
-    background: var(--bg-card);
-    backdrop-filter: blur(12px);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 24px;
-    margin-bottom: 24px;
-    overflow-x: auto;
-  }
-  .panel-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .panel { background: var(--bg-card); backdrop-filter: blur(12px); border: 1px solid var(--border); border-radius: 20px; padding: 24px; margin-bottom: 24px; overflow-x: auto; }
+  .panel-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;}
   .panel-title h2 { font-family: var(--font-title); font-size: 20px; }
   .btn-back { background: transparent; border: 1px solid var(--border); color: var(--text-main); padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
   .btn-back:hover { background: rgba(255,255,255,0.1); }
 
-  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  /* Select uslubi */
+  .select-teacher { background: rgba(0,0,0,0.3); border: 1px solid var(--border); color: white; padding: 10px 15px; border-radius: 8px; font-size: 15px; outline: none; cursor: pointer; }
+  .select-teacher option { background: #1e293b; color: white; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 800px; }
   th, td { padding: 16px; text-align: left; border-bottom: 1px solid var(--border); }
-  th { background: rgba(255,255,255,0.02); font-weight: 600; color: var(--text-muted); font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+  th { background: rgba(255,255,255,0.02); font-weight: 600; color: var(--text-muted); font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
   td input, td select { background: transparent; border: 1px solid transparent; color: var(--text-main); padding: 8px; border-radius: 6px; width: 100%; font-family: var(--font); font-size: 14px; transition: 0.2s; }
   td input:hover, td input:focus, td select:hover, td select:focus { border-color: var(--border); background: rgba(0,0,0,0.2); outline: none; }
-  td select option { background: #1e293b; color: white; }
   
   .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
   .status-bad { background: rgba(239, 68, 68, 0.15); color: var(--bad); }
   .status-good { background: rgba(16, 185, 129, 0.15); color: var(--good); }
   
-  .btn-upload { background: var(--accent); color: #fff; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: 500; transition: 0.2s; }
+  .btn-upload { background: var(--accent); color: #fff; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: 500; transition: 0.2s; white-space: nowrap; }
   .btn-upload:hover { background: var(--accent-hover); }
   .btn-upload:disabled { background: #475569; cursor: not-allowed; }
   
@@ -256,6 +184,17 @@
         <h1 id="section-title">Bo'lim nomi</h1>
         <button class="btn-back" onclick="nav('home')">← Orqaga</button>
       </div>
+      
+      <!-- O'qituvchini tanlash (Tijoratdan tashqari) -->
+      <div class="panel" id="teacher-select-panel" style="margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 15px;">
+          <label style="font-weight: 600;">O'qituvchini tanlang:</label>
+          <select id="section-teacher-select" class="select-teacher" onchange="renderSectionTable()">
+            <!-- JS orqali to'ldiriladi -->
+          </select>
+        </div>
+      </div>
+
       <div class="panel">
         <div class="panel-title">
           <h2>Bajariladigan ishlar jadvali</h2>
@@ -336,6 +275,10 @@
 
 <script>
   const API_BASE = "https://kafedra-worker.sanjarturdiboyev3.workers.dev/api/";
+  const MONTHS = ["Yanvar", "Fevral", "Mart", "Aprel", "May", "Iyun", "Iyul", "Avgust", "Sentabr", "Oktabr", "Noyabr", "Dekabr"];
+  const REJA_SUMMA = 2500000; // Tijorat uchun umumiy maqsad (2.5 mln)
+
+  let teachersData = [];
   
   const SECTIONS = {
     'oquv': { title: 'I. O\'quv ishlari', tasks: [
@@ -364,7 +307,7 @@
     setTimeout(() => t.className = 'toast', 3000);
   }
 
-  function nav(page, sectionId = null) {
+  async function nav(page, sectionId = null) {
     document.querySelectorAll('main > div').forEach(d => d.classList.add('hidden'));
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     
@@ -374,11 +317,26 @@
     } else if (page === 'section') {
       currentSection = sectionId;
       document.getElementById('view-section').classList.remove('hidden');
+      
+      // O'qituvchilar ro'yxatini yuklash (agar hali yuklanmagan bo'lsa)
+      if (teachersData.length === 0) {
+        await loadTeachersData();
+      }
+      
+      // Tijorat bo'lsa selectni yashirish
+      if (sectionId === 'tijorat') {
+        document.getElementById('teacher-select-panel').classList.add('hidden');
+      } else {
+        document.getElementById('teacher-select-panel').classList.remove('hidden');
+        populateTeacherSelect();
+      }
+      
       renderSectionTable(sectionId);
     } else if (page === 'teachers') {
       document.getElementById('view-teachers').classList.remove('hidden');
       document.querySelectorAll('.nav-btn')[1].classList.add('active');
-      loadTeachers(); // O'qituvchilarni yuklash
+      await loadTeachersData();
+      renderTeachersTable();
     } else if (page === 'report') {
       document.getElementById('view-report').classList.remove('hidden');
       document.querySelectorAll('.nav-btn')[2].classList.add('active');
@@ -389,33 +347,104 @@
     }
   }
 
+  // O'qituvchilarni serverdan yuklash
+  async function loadTeachersData() {
+    try {
+      const res = await fetch(API_BASE + "teachers");
+      teachersData = await res.json();
+    } catch(e) {
+      console.error("O'qituvchilarni yuklashda xato:", e);
+    }
+  }
+
+  // O'qituvchilar jadvalini ko'rsatish
+  function renderTeachersTable() {
+    const tbody = document.getElementById('teachers-list');
+    tbody.innerHTML = '';
+    
+    if(teachersData.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">Hali o\'qituvchilar kiritilmagan</td></tr>';
+      return;
+    }
+
+    teachersData.forEach(t => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="font-weight:500;">${t.name}</td>
+        <td>${t.position}</td>
+        <td>${t.phone || '-'}</td>
+        <td>
+          ${t.chatId 
+            ? '<span class="status-badge status-good">● Ulangan</span>' 
+            : '<span class="status-badge status-bad">● Ulanmagan</span>'}
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Selectni to'ldirish
+  function populateTeacherSelect() {
+    const select = document.getElementById('section-teacher-select');
+    select.innerHTML = '';
+    if (teachersData.length === 0) {
+      select.innerHTML = '<option value="">O\'qituvchilar yo\'q</option>';
+      return;
+    }
+    teachersData.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t.id;
+      opt.textContent = t.name;
+      select.appendChild(opt);
+    });
+  }
+
   function renderSectionTable(secId) {
     const sec = SECTIONS[secId];
     document.getElementById('section-title').textContent = sec.title;
     const table = document.getElementById('section-table');
     
+    // TIJORATLASHTIRISH BO'LIMI (12 oylik jadval)
     if (secId === 'tijorat') {
-      table.innerHTML = `
+      // Tijorat uchun ham barcha o'qituvchilarni ko'rsatamiz
+      let html = `
         <thead>
           <tr>
-            <th>O'qituvchi F.I.Sh.</th>
-            <th>Sentabr</th><th>Oktabr</th><th>Noyabr</th>
-            <th>Umumiy summa</th>
-            <th>Foiz (%)</th>
+            <th style="min-width: 200px;">O'qituvchi F.I.Sh.</th>
+            ${MONTHS.map(m => `<th style="min-width: 80px;">${m}</th>`).join('')}
+            <th style="min-width: 120px;">Umumiy summa</th>
+            <th style="min-width: 100px;">Foiz (%)</th>
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td><b>Karimov Bobur</b></td>
-            <td><input type="number" placeholder="0" oninput="calcTijorat(this)"></td>
-            <td><input type="number" placeholder="0" oninput="calcTijorat(this)"></td>
-            <td><input type="number" placeholder="0" oninput="calcTijorat(this)"></td>
-            <td class="total-sum">0</td>
-            <td class="total-pct">0%</td>
-          </tr>
-        </tbody>
       `;
-    } else {
+      
+      if(teachersData.length === 0) {
+         html += `<tr><td colspan="15" style="text-align:center;">O'qituvchilar yo'q</td></tr>`;
+      } else {
+        teachersData.forEach((t, index) => {
+          html += `
+            <tr id="tijorat-row-${t.id}">
+              <td><b>${t.name}</b></td>
+              ${MONTHS.map((m, i) => `<td><input type="number" placeholder="0" oninput="calcTijorat('${t.id}')"></td>`).join('')}
+              <td class="total-sum" style="font-weight: 600; color: var(--accent);">0 so'm</td>
+              <td class="total-pct" style="font-weight: 600;">0%</td>
+            </tr>
+          `;
+        });
+      }
+      html += `</tbody>`;
+      table.innerHTML = html;
+    } 
+    // QOLGAN 4 TA BO'LIM (Tanlangan o'qituvchi uchun)
+    else {
+      const selectedTeacherId = document.getElementById('section-teacher-select').value;
+      
+      if (!selectedTeacherId) {
+        table.innerHTML = '<tbody><tr><td style="text-align:center; color:var(--text-muted);">Iltimos, yuqoridan o\'qituvchini tanlang yoki o\'qituvchi qo\'shing.</td></tr></tbody>';
+        return;
+      }
+
       table.innerHTML = `
         <thead>
           <tr>
@@ -435,11 +464,11 @@
               <td><input type="text" value="${t.plan}" placeholder="Reja..."></td>
               <td><input type="text" value="${t.deadline}" placeholder="Muddat..."></td>
               <td>
-                <input type="file" id="file-${secId}-${t.id}" style="display:none" onchange="uploadFile(this, '${secId}-${t.id}')">
-                <button class="btn-upload" onclick="document.getElementById('file-${secId}-${t.id}').click()">Yuklash</button>
+                <input type="file" id="file-${secId}-${t.id}-${selectedTeacherId}" style="display:none" onchange="uploadFile(this, '${secId}-${t.id}-${selectedTeacherId}')">
+                <button class="btn-upload" onclick="document.getElementById('file-${secId}-${t.id}-${selectedTeacherId}').click()">Yuklash</button>
               </td>
               <td>
-                <span id="status-${secId}-${t.id}" class="status-badge status-bad">● Bajarilmadi</span>
+                <span id="status-${secId}-${t.id}-${selectedTeacherId}" class="status-badge status-bad">● Bajarilmadi</span>
               </td>
             </tr>
           `).join('')}
@@ -457,13 +486,26 @@
     }
   }
 
-  function calcTijorat(inp) {
-    const row = inp.closest('tr');
+  // Tijorat foizini hisoblash
+  function calcTijorat(teacherId) {
+    const row = document.getElementById(`tijorat-row-${teacherId}`);
     const inputs = row.querySelectorAll('input[type="number"]');
     let sum = 0;
     inputs.forEach(i => sum += Number(i.value) || 0);
-    row.querySelector('.total-sum').textContent = sum.toLocaleString();
-    row.querySelector('.total-pct').textContent = (sum / 10000000 * 100).toFixed(1) + '%';
+    
+    // Umumiy summani chiqarish
+    row.querySelector('.total-sum').textContent = sum.toLocaleString() + " so'm";
+    
+    // Foizni hisoblash (Reja: 2 500 000 so'm)
+    let pct = (sum / REJA_SUMMA) * 100;
+    row.querySelector('.total-pct').textContent = pct.toFixed(1) + '%';
+    
+    // Agar foiz 100 dan oshsa, yashil rang berish
+    if(pct >= 100) {
+      row.querySelector('.total-pct').style.color = 'var(--good)';
+    } else {
+      row.querySelector('.total-pct').style.color = 'var(--text-main)';
+    }
   }
 
   function renderChart() {
@@ -480,78 +522,33 @@
           borderWidth: 0
         }]
       },
-      options: {
-        cutout: '75%',
-        plugins: {
-          legend: { position: 'bottom', labels: { color: '#f8fafc' } }
-        }
-      }
+      options: { cutout: '75%', plugins: { legend: { position: 'bottom', labels: { color: '#f8fafc' } } } }
     });
   }
 
   function downloadExcel() {
     const data = [
       ["Bo'lim", "Ish nomi", "Reja", "Muddat", "Holat"],
-      ["O'quv ishlari", "Dars yuklamasi", "100%", "Dekabr", "Bajarildi"],
-      ["Ilmiy", "Maqola chop etish", "2 ta", "Aprel", "Bajarilmadi"]
+      ["O'quv ishlari", "Dars yuklamasi", "100%", "Dekabr", "Bajarildi"]
     ];
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.aoa_to_sheet(data);
-    ws['!cols'] = [{wch: 20}, {wch: 40}, {wch: 15}, {wch: 15}, {wch: 15}];
     XLSX.utils.book_append_sheet(wb, ws, "Hisobot");
     XLSX.writeFile(wb, "Kafedra_Hisoboti.xlsx");
     showToast('Excel fayl yuklab olindi!', 'ok');
   }
 
-  // O'qituvchilarni yuklash va ko'rsatish
-  async function loadTeachers() {
-    try {
-      const res = await fetch(API_BASE + "teachers");
-      const data = await res.json();
-      const tbody = document.getElementById('teachers-list');
-      tbody.innerHTML = '';
-      
-      data.forEach(t => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td style="font-weight:500;">${t.name}</td>
-          <td>${t.position}</td>
-          <td>${t.phone || '-'}</td>
-          <td>
-            ${t.chatId 
-              ? '<span class="status-badge status-good">● Ulangan</span>' 
-              : '<span class="status-badge status-bad">● Ulanmagan</span>'}
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-    } catch(e) {
-      console.error(e);
-    }
-  }
-
-  // Yangi o'qituvchi qo'shish
   async function addTeacher() {
     const name = document.getElementById('t-name').value.trim();
     const pos = document.getElementById('t-pos').value;
     const phone = document.getElementById('t-phone').value.trim();
 
-    if (name.split(' ').length < 2) {
-      showToast("F.I.Sh.ni to'liq kiriting!", "err");
-      return;
-    }
+    if (name.split(' ').length < 2) { showToast("F.I.Sh.ni to'liq kiriting!", "err"); return; }
     
     let formattedPhone = phone;
-    if (formattedPhone && !formattedPhone.startsWith('+')) {
-      formattedPhone = '+' + formattedPhone;
-    }
+    if (formattedPhone && !formattedPhone.startsWith('+')) formattedPhone = '+' + formattedPhone;
 
-    const newTeacher = {
-      id: "t" + Date.now().toString(36),
-      name: name,
-      position: pos,
-      phone: formattedPhone
-    };
+    const newTeacher = { id: "t" + Date.now().toString(36), name: name, position: pos, phone: formattedPhone };
 
     try {
       await fetch(API_BASE + "teachers", {
@@ -559,20 +556,15 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newTeacher)
       });
-      
       showToast("O'qituvchi qo'shildi!", "ok");
       document.getElementById('t-name').value = '';
       document.getElementById('t-phone').value = '';
-      loadTeachers();
-    } catch(e) {
-      showToast("Xatolik yuz berdi!", "err");
-    }
+      await loadTeachersData();
+      renderTeachersTable();
+    } catch(e) { showToast("Xatolik yuz berdi!", "err"); }
   }
 
-  window.onload = () => {
-    nav('home');
-  };
+  window.onload = () => { nav('home'); };
 </script>
 </body>
 </html>
-```
