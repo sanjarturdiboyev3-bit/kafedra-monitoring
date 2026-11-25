@@ -429,7 +429,7 @@
   const REJA_SUMMA = 2500000;
 
   // PAROLLAR (O'zingizga moslab o'zgartiring)
-  const ADMIN_PASSWORD = "19912609"; 
+  const ADMIN_PASSWORD = "admin123"; 
   const MUDIR_PASSWORD = "mudir123"; 
 
   let currentUserRole = null; 
@@ -747,7 +747,7 @@
             </td>
             <td>
               ${t.status === 'bajarildi' 
-                ? '<span class="status-badge status-good">● Bajarildi</span>' 
+                ? `<a href="${t.fileUrl || '#'}" target="_blank" style="color:var(--good); font-weight:600; text-decoration:none;">● Bajarildi (Ko'rish)</a>` 
                 : '<span class="status-badge status-bad">● Bajarilmadi</span>'}
             </td>
           </tr>
@@ -780,17 +780,40 @@
   async function uploadFile(input, id, teacherId, section, taskName, plan, deadline) {
     if (input.files.length > 0) {
       const file = input.files[0];
-      const data = { 
-        id: id.startsWith('new-') ? "task" + Date.now().toString(36) : id, 
-        teacherId: teacherId, section: section, taskName: taskName, plan: plan, deadline: deadline, status: 'bajarildi', fileUrl: file.name, createdAt: new Date().toISOString()
+      
+      showToast("Fayl yuklanmoqda...", "ok");
+
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        const base64Data = e.target.result; 
+
+        const data = { 
+          id: id.startsWith('new-') ? "task" + Date.now().toString(36) : id, 
+          teacherId: teacherId, 
+          section: section, 
+          taskName: taskName, 
+          plan: plan, 
+          deadline: deadline, 
+          status: 'bajarildi', 
+          fileUrl: base64Data,
+          createdAt: new Date().toISOString()
+        };
+
+        try {
+          await fetch(API_BASE + "section_tasks", {
+            method: "POST", 
+            headers: { "Content-Type": "application/json" }, 
+            body: JSON.stringify(data)
+          });
+
+          showToast("Fayl yuklandi va Bajarildi deb belgilandi!", "ok");
+          renderSectionTable(section);
+        } catch(e) { 
+          console.error(e);
+          showToast("Xatolik: " + e.message, "err"); 
+        }
       };
-      try {
-        await fetch(API_BASE + "section_tasks", {
-          method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data)
-        });
-        showToast("Fayl yuklandi va Bajarildi deb belgilandi!", "ok");
-        renderSectionTable(section);
-      } catch(e) { showToast("Xatolik yuz berdi!", "err"); }
+      reader.readAsDataURL(file);
     }
   }
 
