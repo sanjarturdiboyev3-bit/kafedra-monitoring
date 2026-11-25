@@ -747,7 +747,7 @@
             </td>
             <td>
               ${t.status === 'bajarildi' 
-                ? `<a href="${t.fileUrl || '#'}" target="_blank" style="color:var(--good); font-weight:600; text-decoration:none;">● Bajarildi (Ko'rish)</a>` 
+                ? `<span style="color:var(--good); font-weight:600;">● Bajarildi (${t.fileUrl || 'fayl'})</span>` 
                 : '<span class="status-badge status-bad">● Bajarilmadi</span>'}
             </td>
           </tr>
@@ -781,39 +781,33 @@
     if (input.files.length > 0) {
       const file = input.files[0];
       
-      showToast("Fayl yuklanmoqda...", "ok");
+      showToast("Fayl tanlandi. Iltimos, uni Telegram orqali adminga yuboring.", "ok");
 
-      const reader = new FileReader();
-      reader.onload = async function(e) {
-        const base64Data = e.target.result; 
-
-        const data = { 
-          id: id.startsWith('new-') ? "task" + Date.now().toString(36) : id, 
-          teacherId: teacherId, 
-          section: section, 
-          taskName: taskName, 
-          plan: plan, 
-          deadline: deadline, 
-          status: 'bajarildi', 
-          fileUrl: base64Data,
-          createdAt: new Date().toISOString()
-        };
-
-        try {
-          await fetch(API_BASE + "section_tasks", {
-            method: "POST", 
-            headers: { "Content-Type": "application/json" }, 
-            body: JSON.stringify(data)
-          });
-
-          showToast("Fayl yuklandi va Bajarildi deb belgilandi!", "ok");
-          renderSectionTable(section);
-        } catch(e) { 
-          console.error(e);
-          showToast("Xatolik: " + e.message, "err"); 
-        }
+      const data = { 
+        id: id.startsWith('new-') ? "task" + Date.now().toString(36) : id, 
+        teacherId: teacherId, 
+        section: section, 
+        taskName: taskName, 
+        plan: plan, 
+        deadline: deadline, 
+        status: 'bajarildi', 
+        fileUrl: file.name, 
+        createdAt: new Date().toISOString()
       };
-      reader.readAsDataURL(file);
+
+      try {
+        await fetch(API_BASE + "section_tasks", {
+          method: "POST", 
+          headers: { "Content-Type": "application/json" }, 
+          body: JSON.stringify(data)
+        });
+
+        showToast("Holat 'Bajarildi' deb belgilandi. Faylni Telegram orqali yuboring.", "ok");
+        renderSectionTable(section);
+      } catch(e) { 
+        console.error(e);
+        showToast("Xatolik: " + e.message, "err"); 
+      }
     }
   }
 
